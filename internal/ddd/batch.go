@@ -29,21 +29,21 @@ type Batch struct {
 	allocations       []OrderLine
 }
 
-func (b Batch) Allocate(line OrderLine) {
+func (b *Batch) Allocate(line OrderLine) {
 	if b.CanAllocate(line) {
 		b.allocations = append(b.allocations, line)
 	}
 }
 
-func (b Batch) CanAllocate(line OrderLine) bool {
+func (b *Batch) CanAllocate(line OrderLine) bool {
 	return b.SKU == line.SKU && b.AvailableQuantity() >= line.Qty
 }
 
-func (b Batch) AvailableQuantity() int {
+func (b *Batch) AvailableQuantity() int {
 	return b.purchasedQuantity - b.AllocatedQuantity()
 }
 
-func (b Batch) AllocatedQuantity() int {
+func (b *Batch) AllocatedQuantity() int {
 	sum := 0
 	for _, line := range b.allocations {
 		sum += line.Qty
@@ -51,8 +51,8 @@ func (b Batch) AllocatedQuantity() int {
 	return sum
 }
 
-func NewBatch(reference string, sku string, eta time.Time, qty int) Batch {
-	return Batch{
+func NewBatch(reference string, sku string, eta time.Time, qty int) *Batch {
+	return &Batch{
 		Reference:         reference,
 		SKU:               sku,
 		ETA:               eta,

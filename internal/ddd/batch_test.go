@@ -1,6 +1,7 @@
 package ddd
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -10,5 +11,6 @@ func TestAllocatingToABatchReducesAvailableQuantity(t *testing.T) {
 	line := NewOrderLine("order-ref", "SMALL-TABLE", 2)
 
 	batch.Allocate(line)
-	t.
+	
+	assert.Equal(t, 18, batch.AvailableQuantity())
 }
