@@ -51,6 +51,26 @@ func (b *Batch) AllocatedQuantity() int {
 	return sum
 }
 
+func (b *Batch) EqualTo(other Batch) bool {
+	return b.Reference == other.Reference
+}
+
+func (b *Batch) Contain(line OrderLine) (bool, int) {
+	for i, ol := range b.allocations {
+		if ol.EqualTo(line) {
+			return true, i
+		}
+	}
+	return false, -1
+}
+
+func (b *Batch) Deallocate(line OrderLine) {
+	ok, idx := b.Contain(line)
+	if ok {
+		b.allocations = append(b.allocations[:idx], b.allocations[idx+1:]...)
+	}
+}
+
 func NewBatch(reference string, sku string, eta time.Time, qty int) *Batch {
 	return &Batch{
 		Reference:         reference,
