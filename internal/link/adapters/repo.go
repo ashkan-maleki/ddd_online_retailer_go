@@ -11,7 +11,6 @@ type GormRepository struct {
 }
 
 func NewGormRepo() *GormRepository {
-
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")

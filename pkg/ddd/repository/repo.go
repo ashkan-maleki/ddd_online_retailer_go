@@ -16,6 +16,8 @@ func (repo BaseRepository[E]) GetEntityType() reflect.Type {
 	return reflect.TypeOf(repo)
 }
 
+var _ Repository[any] = (*BaseRepository[any])(nil)
+
 type Inserter[E any] interface {
 	Repository[E]
 	Insert(ctx context.Context, entity *E) error
@@ -51,7 +53,7 @@ type CrudRepository[E any] interface {
 	Getter[E]
 }
 
-type Specifier[E any] interface {
+type Finder[E any] interface {
 	Repository[E]
 	Find(ctx context.Context, specifications ...Specification) ([]E, error)
 }
@@ -59,6 +61,12 @@ type Specifier[E any] interface {
 type Counter[E any] interface {
 	Repository[E]
 	Count(ctx context.Context, specifications ...Specification) (i int64, err error)
+}
+
+type AbstractRepository[E any] interface {
+	CrudRepository[E]
+	Finder[E]
+	Counter[E]
 }
 
 type GenericRepository[E any] interface {
