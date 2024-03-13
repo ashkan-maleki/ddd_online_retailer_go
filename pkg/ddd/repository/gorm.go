@@ -11,47 +11,58 @@ type GormRepository[E any] struct {
 	db *gorm.DB
 }
 
-func NewGormRepository[E any]() *GormRepository[E] {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+type MigrationInvoker func(db *gorm.DB)
+
+//db.AutoMigrate(&Batches{})
+
+func NewGormRepository[E any](migrate MigrationInvoker) *GormRepository[E] {
+	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
-	// Migrate the schema
-	// Todo: Add migrations
-	//db.AutoMigrate(&Batches{})
+	migrate(db)
 	return &GormRepository[E]{db: db}
 }
 
 var _ AbstractRepository[any] = (*GormRepository[any])(nil)
 
 func (repo GormRepository[E]) Insert(ctx context.Context, entity *E) error {
-	repo.db.Create(entity)
+	repo.db.WithContext(ctx).Create(entity)
 	return nil
 }
 
 func (repo GormRepository[E]) Delete(ctx context.Context, entity *E) error {
-	//TODO implement me
-	panic("implement me")
+	repo.db.WithContext(ctx).Delete(entity)
+	return nil
 }
 
 func (repo GormRepository[E]) DeleteById(ctx context.Context, id any) error {
-	//TODO implement me
-	panic("implement me")
+	entity, err := repo.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	err = repo.Delete(ctx, &entity)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (repo GormRepository[E]) Update(ctx context.Context, entity *E) error {
-	//TODO implement me
-	panic("implement me")
+	repo.db.WithContext(ctx).Save(entity)
+	return nil
 }
 
 func (repo GormRepository[E]) List(ctx context.Context) ([]E, error) {
-	//TODO implement me
-	panic("implement me")
+	var entityList []E
+	repo.db.WithContext(ctx).Find(&entityList)
+	return entityList, nil
 }
 
 func (repo GormRepository[E]) Get(ctx context.Context, id any) (E, error) {
-	//TODO implement me
-	panic("implement me")
+	var entity E
+	repo.db.WithContext(ctx).First(&entity, id)
+	return entity, nil
 }
 
 func (repo GormRepository[E]) Find(ctx context.Context, specifications ...Specification) ([]E, error) {
