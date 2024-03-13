@@ -15,8 +15,14 @@ type MigrationInvoker func(db *gorm.DB)
 
 //db.AutoMigrate(&Batches{})
 
-func NewGormRepository[E any](migrate MigrationInvoker) *GormRepository[E] {
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+type GormDbDriver string
+
+const (
+	InMemory GormDbDriver = "file::memory:?cache=shared"
+)
+
+func NewGormRepository[E any](driver GormDbDriver, migrate MigrationInvoker, config *gorm.Config) *GormRepository[E] {
+	db, err := gorm.Open(sqlite.Open(string(driver)), config)
 	if err != nil {
 		panic("failed to connect database")
 	}
