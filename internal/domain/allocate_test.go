@@ -1,4 +1,4 @@
-package ddd
+package domain
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -19,8 +19,8 @@ func later() time.Time {
 }
 
 func TestPrefersCurrentStockBatchesToShipments(t *testing.T) {
-	inStockBatch := NewBatch("in-stock-batch", "RETRO-CLOCK", time.Time{}, 100)
-	shipmentBatch := NewBatch("shipment-batch", "RETRO-CLOCK", tomorrow(), 100)
+	inStockBatch := NewBatch("in-stock-batch", "RETRO-CLOCK", 100, time.Time{})
+	shipmentBatch := NewBatch("shipment-batch", "RETRO-CLOCK", 100, tomorrow())
 	line := NewOrderLine("oref", "RETRO-CLOCK", 10)
 
 	_, err := Allocate(line, []*Batch{inStockBatch, shipmentBatch})
@@ -33,9 +33,9 @@ func TestPrefersCurrentStockBatchesToShipments(t *testing.T) {
 }
 
 func TestPrefersEarlierBatches(t *testing.T) {
-	earliest := NewBatch("speedy-batch", "MINIMALIST-SPOON", now(), 100)
-	medium := NewBatch("normal-batch", "MINIMALIST-SPOON", tomorrow(), 100)
-	latest := NewBatch("slow-batch", "MINIMALIST-SPOON", later(), 100)
+	earliest := NewBatch("speedy-batch", "MINIMALIST-SPOON", 100, now())
+	medium := NewBatch("normal-batch", "MINIMALIST-SPOON", 100, tomorrow())
+	latest := NewBatch("slow-batch", "MINIMALIST-SPOON", 100, later())
 
 	line := NewOrderLine("order1", "MINIMALIST-SPOON", 10)
 
@@ -50,8 +50,8 @@ func TestPrefersEarlierBatches(t *testing.T) {
 }
 
 func TestReturnsAllocatedBatchRef(t *testing.T) {
-	inStockBatch := NewBatch("in-stock-batch-ref", "HIGHBROW-POSTER", time.Time{}, 100)
-	shipmentBatch := NewBatch("shipment-batch-ref", "HIGHBROW-POSTER", tomorrow(), 100)
+	inStockBatch := NewBatch("in-stock-batch-ref", "HIGHBROW-POSTER", 100, time.Time{})
+	shipmentBatch := NewBatch("shipment-batch-ref", "HIGHBROW-POSTER", 100, tomorrow())
 	line := NewOrderLine("oref", "HIGHBROW-POSTER", 10)
 
 	ref, err := Allocate(line, []*Batch{inStockBatch, shipmentBatch})
@@ -63,7 +63,7 @@ func TestReturnsAllocatedBatchRef(t *testing.T) {
 }
 
 func TestReturnsOutOfStockExceptionIfCannotAllocate(t *testing.T) {
-	batch := NewBatch("batch1", "SMALL-FORK", time.Time{}, 10)
+	batch := NewBatch("batch1", "SMALL-FORK", 10, time.Time{})
 	line1 := NewOrderLine("order1", "SMALL-FORK", 10)
 	line2 := NewOrderLine("order2", "SMALL-FORK", 10)
 

@@ -2,12 +2,12 @@ package adapters
 
 import (
 	"fmt"
-	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/ddd"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain"
 	"reflect"
 )
 
-func ToDomainBatch(dbBatch Batches) ddd.Batch {
-	var batch ddd.Batch
+func ToDomainBatch(dbBatch Batches) domain.Batch {
+	var batch domain.Batch
 	return batch
 }
 

@@ -1,7 +1,7 @@
 package adapters
 
 import (
-	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/ddd"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -20,11 +20,9 @@ func NewGormRepo() *GormRepository {
 	return &GormRepository{db: db}
 }
 
-func (repo *GormRepository) Add(batch ddd.Batch) {
+func (repo *GormRepository) Add(batch domain.Batch) {
 	dbBatch := Batches{
-		Sku:       batch.SKU,
-		Reference: batch.Reference,
-		Eta:       batch.ETA,
+		Batch: batch,
 	}
 
 	// Create
@@ -32,10 +30,10 @@ func (repo *GormRepository) Add(batch ddd.Batch) {
 
 }
 
-func (repo *GormRepository) Get(reference string) ddd.Batch {
-	return ddd.Batch{}
+func (repo *GormRepository) Get(reference string) domain.Batch {
+	return domain.Batch{}
 }
 
-func (repo *GormRepository) List() []ddd.Batch {
-	return make([]ddd.Batch, 0)
+func (repo *GormRepository) List() []domain.Batch {
+	return make([]domain.Batch, 0)
 }

@@ -1,4 +1,4 @@
-package ddd
+package domain
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestAllocatingToABatchReducesAvailableQuantity(t *testing.T) {
-	batch := NewBatch("batch-001", "SMALL-TABLE", time.Now(), 20)
+	batch := NewBatch("batch-001", "SMALL-TABLE", 20, time.Now())
 	line := NewOrderLine("order-ref", "SMALL-TABLE", 2)
 
 	batch.Allocate(line)
@@ -16,7 +16,7 @@ func TestAllocatingToABatchReducesAvailableQuantity(t *testing.T) {
 }
 
 func makeBatchAndLine(sku string, batchQty int, lineQty int) (*Batch, OrderLine) {
-	return NewBatch("batch-001", sku, time.Now(), batchQty),
+	return NewBatch("batch-001", sku, batchQty, time.Now()),
 		NewOrderLine("order-123", sku, lineQty)
 }
 
@@ -36,7 +36,7 @@ func TestCanAllocateIfAvailableEqualToRequired(t *testing.T) {
 }
 
 func TestCannotAllocateIfSkusDoNotMatch(t *testing.T) {
-	batch := NewBatch("batch-001", "UNCOMFORTABLE-CHAIR", time.Time{}, 100)
+	batch := NewBatch("batch-001", "UNCOMFORTABLE-CHAIR", 100, time.Time{})
 	differentSkuLine := NewOrderLine("order-123", "EXPENSIVE-TOASTER", 10)
 	assert.False(t, batch.CanAllocate(differentSkuLine))
 }

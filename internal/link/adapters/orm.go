@@ -1,26 +1,33 @@
 package adapters
 
 import (
-	"time"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain"
 )
 
 type OrderLines struct {
-	Id      int64 `gorm:"primaryKey"`
-	Sku     string
-	Qty     int
-	OrderId int64
+	ID int64 `gorm:"primaryKey"`
+	domain.OrderLine
+	//Sku string
+	//Qty     int
+	//OrderID string
+}
+
+func GetDomainOrderLine(lines []OrderLines) []domain.OrderLine {
+	domainLines := make([]domain.OrderLine, len(lines), len(lines))
+	for i, line := range lines {
+		domainLines[i] = line.OrderLine
+	}
+	return domainLines
 }
 
 type Batches struct {
-	Id          int64 `gorm:"primaryKey"`
-	Reference   string
-	Sku         string
-	Eta         time.Time
-	Allocations []Allocations
+	ID int64 `gorm:"primaryKey"`
+	domain.Batch
+	Allocations []Allocations `gorm:"foreignKey:BatchID"`
 }
 
 type Allocations struct {
-	Id          int64 `gorm:"primaryKey"`
-	OrderLineId int64
-	BatchId     int64
+	ID          int64 `gorm:"primaryKey"`
+	OrderLineID int64
+	BatchID     int64
 }

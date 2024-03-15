@@ -1,32 +1,15 @@
-package ddd
+package domain
 
 import (
-	"errors"
 	"sort"
 	"time"
 )
 
-var OutOfStock = errors.New("out of stock")
-
-type OrderLine struct {
-	OrderId string
-	SKU     string
-	Qty     int
-}
-
-func NewOrderLine(orderId string, SKU string, qty int) OrderLine {
-	return OrderLine{OrderId: orderId, SKU: SKU, Qty: qty}
-}
-
-func (ol OrderLine) EqualTo(line OrderLine) bool {
-	return ol.OrderId == line.OrderId && ol.Qty == line.Qty && ol.SKU == line.SKU
-}
-
 type Batch struct {
 	Reference         string
 	SKU               string
+	PurchasedQuantity int
 	ETA               time.Time
-	purchasedQuantity int
 	allocations       []OrderLine
 }
 
@@ -41,7 +24,7 @@ func (b *Batch) CanAllocate(line OrderLine) bool {
 }
 
 func (b *Batch) AvailableQuantity() int {
-	return b.purchasedQuantity - b.AllocatedQuantity()
+	return b.PurchasedQuantity - b.AllocatedQuantity()
 }
 
 func (b *Batch) AllocatedQuantity() int {
@@ -72,12 +55,12 @@ func (b *Batch) Deallocate(line OrderLine) {
 	}
 }
 
-func NewBatch(reference string, sku string, eta time.Time, qty int) *Batch {
+func NewBatch(reference string, sku string, qty int, eta time.Time) *Batch {
 	return &Batch{
 		Reference:         reference,
 		SKU:               sku,
 		ETA:               eta,
-		purchasedQuantity: qty,
+		PurchasedQuantity: qty,
 		allocations:       make([]OrderLine, 0),
 	}
 }
