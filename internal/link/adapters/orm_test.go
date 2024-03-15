@@ -37,7 +37,7 @@ func TestOrderLineEntityCanLoadLines(t *testing.T) {
 	}
 	var got []OrderLines
 	db.Find(&got)
-	assert.Equal(t, GetDomainOrderLine(expected), GetDomainOrderLine(got))
+	assert.Equal(t, MapManyDomainOrderLine(expected), MapManyDomainOrderLine(got))
 }
 
 func TestOrderLaneEntityCanSaveLines(t *testing.T) {
@@ -74,6 +74,8 @@ func TestRetrievingBatches(t *testing.T) {
 	// Migrate the schema
 	//fmt.Println("8888888888888888")
 	err = db.AutoMigrate(&Batches{})
+	err = db.AutoMigrate(&OrderLines{})
+	err = db.AutoMigrate(&Allocations{})
 	if err != nil {
 		log.Println(err)
 	}
@@ -87,18 +89,32 @@ func TestRetrievingBatches(t *testing.T) {
 
 	db.Exec(`
 	 INSERT INTO batches (reference, sku, purchased_quantity, eta)
-     VALUES ('batch2', 'sku2', 200, '2011-04-11')
+     VALUES ('batch2', 'sku1', 200, '2024-12-24')
+	`)
+
+	db.Exec(`
+	INSERT INTO order_lines (order_id, sku, qty) VALUES
+        ('order1', 'RED-CHAIR', 12)
+	`)
+
+	//line := OrderLines{OrderLine: domain.OrderLine{OrderID: "order1", SKU: "sku1", Qty: 12}}
+
+	db.Exec(`
+	INSERT INTO allocations (order_line_id, batch_id) VALUES
+        (1,1)
 	`)
 
 	expected := []Batches{
 		{Batch: *domain.NewBatch("batch1", "sku1", 100, time.Time{})},
-		{Batch: *domain.NewBatch("batch2", "sku2", 200,
-			createDate(2011, 12, 24))},
+		{Batch: *domain.NewBatch("batch2", "sku1", 200,
+			createDate(2024, 12, 24))},
 	}
 
+	expected[0].Allocations = append(expected[0].Allocations, Allocations{BatchID: 1, OrderLineID: 1})
+
 	var got []Batches
-	db.Find(&got)
-	assert.Equal(t, expected, got)
+	db.Model(&got).Preload("Allocations").Find(&got)
+	assert.Equal(t, MapManyDomainBatch(expected), MapManyDomainBatch(got))
 }
 
 func createDate(year, month, day int) time.Time {

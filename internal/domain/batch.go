@@ -13,7 +13,19 @@ type Batch struct {
 	allocations       []OrderLine
 }
 
+func NewBatch(reference string, sku string, qty int, eta time.Time) *Batch {
+	return &Batch{
+		Reference:         reference,
+		SKU:               sku,
+		ETA:               eta,
+		PurchasedQuantity: qty,
+	}
+}
+
 func (b *Batch) Allocate(line OrderLine) {
+	if b.allocations == nil {
+		b.allocations = make([]OrderLine, 0)
+	}
 	if b.CanAllocate(line) {
 		b.allocations = append(b.allocations, line)
 	}
@@ -52,16 +64,6 @@ func (b *Batch) Deallocate(line OrderLine) {
 	ok, idx := b.Contain(line)
 	if ok {
 		b.allocations = append(b.allocations[:idx], b.allocations[idx+1:]...)
-	}
-}
-
-func NewBatch(reference string, sku string, qty int, eta time.Time) *Batch {
-	return &Batch{
-		Reference:         reference,
-		SKU:               sku,
-		ETA:               eta,
-		PurchasedQuantity: qty,
-		allocations:       make([]OrderLine, 0),
 	}
 }
 
