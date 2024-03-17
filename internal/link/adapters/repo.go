@@ -1,39 +1,45 @@
 package adapters
 
 import (
+	"context"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/pkg/ddd/repository"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-type GormRepository struct {
+type BatchRepo struct {
 	db *gorm.DB
 }
 
-func NewGormRepo() *GormRepository {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+func NewBatchRepo() (*BatchRepo, error) {
+	db, err := gorm.Open(sqlite.Open(string(repository.InMemory)), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect database")
+		return nil, err
 	}
-	// Migrate the schema
-	db.AutoMigrate(&Batches{})
-	return &GormRepository{db: db}
+	err = db.AutoMigrate(&Batches{})
+	if err != nil {
+		return nil, err
+	}
+	return &BatchRepo{db: db}, nil
 }
 
-func (repo *GormRepository) Add(batch domain.Batch) {
+func (repo *BatchRepo) Add(ctx context.Context, batch domain.Batch) {
 	dbBatch := Batches{
 		Batch: batch,
 	}
-
-	// Create
-	repo.db.Create(&dbBatch)
+	repo.db.WithContext(ctx).Create(&dbBatch)
 
 }
 
-func (repo *GormRepository) Get(reference string) domain.Batch {
-	return domain.Batch{}
+func (repo *BatchRepo) Get(ctx context.Context, reference string) domain.Batch {
+	var batch *Batches
+	repo.db.WithContext(ctx).Where("reference = ?", reference).First(&batch)
+	return batch.Batch
 }
 
-func (repo *GormRepository) List() []domain.Batch {
-	return make([]domain.Batch, 0)
+func (repo *BatchRepo) List(ctx context.Context) []domain.Batch {
+	var batchList []Batches
+	repo.db.WithContext(ctx).Find(&batchList)
+	return MapManyDomainBatch(batchList)
 }
