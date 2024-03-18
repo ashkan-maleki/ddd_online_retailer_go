@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"sort"
 	"time"
 )
@@ -17,15 +18,13 @@ func NewBatch(reference string, sku string, qty int, eta time.Time) *Batch {
 	return &Batch{
 		Reference:         reference,
 		SKU:               sku,
-		ETA:               eta,
 		PurchasedQuantity: qty,
+		ETA:               eta,
+		allocations:       make([]OrderLine, 0),
 	}
 }
 
 func (b *Batch) Allocate(line OrderLine) {
-	if b.allocations == nil {
-		b.allocations = make([]OrderLine, 0)
-	}
 	if b.CanAllocate(line) {
 		b.allocations = append(b.allocations, line)
 	}
@@ -67,16 +66,22 @@ func (b *Batch) Deallocate(line OrderLine) {
 	}
 }
 
-func Allocate(line OrderLine, batches []*Batch) (string, error) {
+func (b *Batch) Allocations() []OrderLine {
+	return b.allocations
+}
+
+var OutOfStock = errors.New("out of stock")
+
+func Allocate(line OrderLine, batches []*Batch) (*Batch, error) {
 	sort.Slice(batches, func(i, j int) bool {
 		return batches[i].ETA.Before(batches[j].ETA)
 	})
 	for _, batch := range batches {
 		if batch.CanAllocate(line) {
 			batch.Allocate(line)
-			return batch.Reference, nil
+			return batch, nil
 		}
 	}
-	return "", OutOfStock
+	return nil, OutOfStock
 
 }

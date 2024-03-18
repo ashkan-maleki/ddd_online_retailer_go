@@ -59,7 +59,7 @@ func TestReturnsAllocatedBatchRef(t *testing.T) {
 		assert.ErrorIs(t, err, OutOfStock)
 	}
 
-	assert.Equal(t, inStockBatch.Reference, ref)
+	assert.Equal(t, inStockBatch.Reference, ref.Reference)
 }
 
 func TestReturnsOutOfStockExceptionIfCannotAllocate(t *testing.T) {

@@ -1,4 +1,4 @@
-package adapters
+package mapper
 
 //func TestCanConvertDbBatchToDomainBatch(t *testing.T) {
 //	now := time.Now()

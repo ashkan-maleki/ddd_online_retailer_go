@@ -1,9 +1,5 @@
 package domain
 
-import "errors"
-
-var OutOfStock = errors.New("out of stock")
-
 type OrderLine struct {
 	OrderID string
 	SKU     string
