@@ -12,31 +12,46 @@ import (
 	"time"
 )
 
-func TestRepositoryCanSaveABatch(t *testing.T) {
+func TestRepositoryCanSaveABatchAndAProduct(t *testing.T) {
 
 	repo := newBatchRepo()
-	expected := entity.Batch{
+	sku := "RUSTY-SOAPDISH"
+	batch := entity.Batch{
 		Reference:         "batch5",
-		SKU:               "RUSTY-SOAPDISH",
+		SKU:               sku,
 		PurchasedQuantity: 100,
 		ETA:               time.Time{},
+	}
+	expected := entity.Product{
+		SKU:           sku,
+		VersionNumber: 0,
+		Batches:       []entity.Batch{batch},
 	}
 	repo.Add(context.Background(), &expected)
 
 	db := orm.CreateInMemoryGormDb()
 
-	var got entity.Batch
-	db.Where("reference = ? and sku = ?", expected.Reference, expected.SKU).First(&got)
+	var got entity.Product
+	db.Where("sku = ?", batch.Reference, batch.SKU).Preload("Batches").First(&got)
 	assert.Equal(t, expected, got)
 }
 
-func newBatchRepo() *BatchRepo {
+func newBatchRepo() *ProductRepo {
 	repo, err := NewBatchRepo()
 	if err != nil {
 		log.Println(err)
 		panic("new batch repo failed")
 	}
 	return repo
+}
+
+func InsertProduct(db *gorm.DB) {
+	product := entity.Product{
+		SKU:           "GENERIC-SOFA",
+		VersionNumber: 0,
+		Batches:       make([]entity.Batch, 0),
+	}
+	db.Create(&product)
 }
 
 func InsertOrderLine(db *gorm.DB) int64 {
@@ -98,18 +113,21 @@ func InsertAllocation(db *gorm.DB, lineID int64, batchID int64) {
 func TestRepositoryCanRetrieveABatchWithAllocations(t *testing.T) {
 	repo := newBatchRepo()
 	db := orm.CreateInMemoryGormDb()
+	InsertProduct(db)
 	lineID := InsertOrderLine(db)
 	batchID := InsertBatch(db, "batch3")
 	InsertBatch(db, "batch4")
 	InsertAllocation(db, lineID, batchID)
 
-	batch := repo.Get(context.Background(), "batch3")
 	var expected entity.Batch
 	db.Preload("Allocations.OrderLine").First(&expected, batchID)
 
 	fmt.Println("=============")
+	fmt.Println(expected)
+	fmt.Println("=============")
+	batch := repo.Get(context.Background(), "GENERIC-SOFA").Batches[0]
 	fmt.Println(batch)
-	got := *batch
+	got := batch
 	assert.Equal(t, expected, got)
 	assert.Equal(t, 1, len(batch.Allocations))
 

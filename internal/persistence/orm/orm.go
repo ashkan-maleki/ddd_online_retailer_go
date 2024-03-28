@@ -21,16 +21,22 @@ func AutoMigrate(db *gorm.DB) {
 	err := db.AutoMigrate(&entity.Batch{})
 	if err != nil {
 		log.Println(err)
-		panic("migration failed")
+		panic("batch migration failed")
 	}
 	err = db.AutoMigrate(&entity.OrderLine{})
 	if err != nil {
 		log.Println(err)
-		panic("migration failed")
+		panic("order line migration failed")
 	}
 	err = db.AutoMigrate(&entity.Allocation{})
 	if err != nil {
 		log.Println(err)
-		panic("migration failed")
+		panic("allocation migration failed")
 	}
+	err = db.AutoMigrate(&entity.Product{})
+	if err != nil {
+		log.Println(err)
+		panic("product migration failed")
+	}
+
 }

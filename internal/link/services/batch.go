@@ -11,12 +11,12 @@ import (
 	"time"
 )
 
-type BatchService struct {
-	repo *adapters.BatchRepo
+type ProductService struct {
+	repo *adapters.ProductRepo
 }
 
-func NewBatchService(repo *adapters.BatchRepo) *BatchService {
-	return &BatchService{repo: repo}
+func NewBatchService(repo *adapters.ProductRepo) *ProductService {
+	return &ProductService{repo: repo}
 }
 
 var InvalidSku = errors.New("invalid sku")
@@ -30,18 +30,25 @@ func IsValidSku(sku string, batches []*entity.Batch) bool {
 	return false
 }
 
-func (service *BatchService) AddBatch(ctx context.Context, reference, sku string, qty int, eta time.Time) {
-	service.repo.Add(ctx, &entity.Batch{
+func (service *ProductService) AddBatch(ctx context.Context, reference, sku string, qty int, eta time.Time) {
+	batch := &domain.Batch{
 		Reference:         reference,
 		SKU:               sku,
 		PurchasedQuantity: qty,
 		ETA:               eta,
-	})
+	}
+	product := mapper.ProductToDomain(service.repo.Get(ctx, sku))
+	if product == nil {
+		product = domain.NewProduct(sku, make([]*domain.Batch, 0))
+	}
+	product.Batches = append(product.Batches, batch)
+	service.repo.Add(ctx, mapper.ProductToEntity(product))
+
 }
 
-func (service *BatchService) Allocate(ctx context.Context, orderID, sku string, qty int) (string, error) {
+func (service *ProductService) Allocate(ctx context.Context, orderID, sku string, qty int) (string, error) {
 	line := domain.NewOrderLine(orderID, sku, qty)
-	batches := service.repo.List(ctx)
+	batches := mapper.BatchToArrayOfPointers(service.repo.Get(ctx, sku).Batches)
 	if !IsValidSku(sku, batches) {
 		return "", fmt.Errorf("sku validation: %w", InvalidSku)
 	}
@@ -49,6 +56,5 @@ func (service *BatchService) Allocate(ctx context.Context, orderID, sku string, 
 	if err != nil {
 		return "", fmt.Errorf("domain allocation: %w", err)
 	}
-
 	return batch.Reference, nil
 }

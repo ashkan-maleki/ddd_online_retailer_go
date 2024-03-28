@@ -122,6 +122,85 @@ func TestRetrievingBatches(t *testing.T) {
 
 }
 
+func TestRetrievingBatchesThroughProduct(t *testing.T) {
+	db := CreateInMemoryGormDb()
+	AutoMigrate(db)
+
+	db.Exec(`
+	INSERT INTO products (sku, version_number)
+    VALUES ('sku1', 0),
+           ('sku2', 2)
+	`)
+
+	db.Exec(`
+	INSERT INTO batches (reference, sku, purchased_quantity, eta)
+    VALUES ('batch1', 'sku1', 100, null),
+           ('batch2', 'sku1', 200, '2024-12-24')
+	`)
+
+	var batchID int64
+	db.Raw("SELECT id FROM batches WHERE reference = ? and sku = ?", "batch1", "sku1").Scan(&batchID)
+	var batchID2 int64
+	db.Raw("SELECT id FROM batches WHERE reference = ? and sku = ?", "batch2", "sku1").Scan(&batchID2)
+
+	db.Exec(`
+	INSERT INTO order_lines (order_id, sku, qty) VALUES
+       ('order1', 'sku1', 12)
+	`)
+
+	var lineID int64
+	db.Raw("SELECT id FROM order_lines WHERE order_id = ? and sku = ?", "order1", "sku1").Scan(&lineID)
+
+	db.Exec(`
+	INSERT INTO allocations (order_line_id, batch_id) VALUES
+       (?, ?)
+	`, lineID, batchID)
+
+	var allocationID int64
+	db.Raw("SELECT id FROM allocations WHERE order_line_id = ? and batch_id = ?", lineID, batchID).Scan(&allocationID)
+
+	line := entity.OrderLine{
+		ID:      lineID,
+		OrderID: "order1",
+		SKU:     "sku1",
+		Qty:     12,
+	}
+	batch := entity.Batch{
+		ID:                batchID,
+		Reference:         "batch1",
+		SKU:               "sku1",
+		PurchasedQuantity: 100,
+		ETA:               time.Time{},
+	}
+	batch.Allocations = append(batch.Allocations, entity.Allocation{
+		ID:          allocationID,
+		OrderLine:   line,
+		OrderLineID: lineID,
+		BatchID:     batchID,
+	})
+
+	expected := []entity.Batch{
+		batch,
+		{
+			ID:                batchID2,
+			Reference:         "batch2",
+			SKU:               "sku1",
+			PurchasedQuantity: 200,
+			ETA:               createDate(2024, 12, 24),
+			Allocations:       make([]entity.Allocation, 0),
+		},
+	}
+
+	fmt.Println([]int64{batchID, batchID2})
+	var got []entity.Batch
+	db.Model(&got).Preload("Allocations.OrderLine").Find(&got, []int64{batchID, batchID2})
+	assert.Equal(t, expected, got)
+	//assert.True(t, batchID > 0)
+	//assert.True(t, lineID > 0)
+	//assert.True(t, allocationID > 0)
+
+}
+
 func createDate(year, month, day int) time.Time {
 	dateString := fmt.Sprintf("%v-%v-%v", year, month, day)
 	date, error := time.Parse("2006-01-02", dateString)

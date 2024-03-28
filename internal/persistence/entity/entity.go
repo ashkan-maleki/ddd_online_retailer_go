@@ -16,6 +16,7 @@ type Batch struct {
 	ID                int64 `gorm:"primaryKey"`
 	Reference         string
 	SKU               string
+	Product           Product `gorm:"foreignKey:SKU;references:SKU"`
 	PurchasedQuantity int
 	ETA               time.Time
 	Allocations       []Allocation `gorm:"foreignKey:BatchID"`
@@ -26,4 +27,10 @@ type Allocation struct {
 	OrderLineID int64
 	OrderLine   OrderLine `gorm:"foreignKey:ID;references:OrderLineID"`
 	BatchID     int64
+}
+
+type Product struct {
+	SKU           string  `gorm:"primaryKey"`
+	VersionNumber int     `gorm:"default:0"`
+	Batches       []Batch `gorm:"foreignKey:SKU;references:SKU"`
 }

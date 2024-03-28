@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func newBatchRepo() *adapters.BatchRepo {
+func newBatchRepo() *adapters.ProductRepo {
 	repo, err := adapters.NewBatchRepo()
 	if err != nil {
 		log.Println(err)

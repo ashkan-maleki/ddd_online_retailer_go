@@ -42,3 +42,19 @@ func BatchToEntityMany(bchList []*domain.Batch) []*entity.Batch {
 	}
 	return batches
 }
+
+func BatchToArrayOfPointers(list []entity.Batch) []*entity.Batch {
+	batches := make([]*entity.Batch, len(list), len(list))
+	for i := range list {
+		batches[i] = &list[i]
+	}
+	return batches
+}
+
+func BatchToArrayOfValues(list []*entity.Batch) []entity.Batch {
+	batches := make([]entity.Batch, len(list), len(list))
+	for i := range list {
+		batches[i] = *list[i]
+	}
+	return batches
+}

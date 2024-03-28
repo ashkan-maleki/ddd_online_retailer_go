@@ -9,7 +9,7 @@ import (
 )
 
 type Application struct {
-	service *services.BatchService
+	service *services.ProductService
 	rest    *fiber.App
 }
 

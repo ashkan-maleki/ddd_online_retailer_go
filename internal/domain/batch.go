@@ -83,5 +83,4 @@ func Allocate(line OrderLine, batches []*Batch) (*Batch, error) {
 		}
 	}
 	return nil, OutOfStock
-
 }
