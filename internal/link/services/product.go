@@ -30,31 +30,34 @@ func IsValidSku(sku string, batches []*entity.Batch) bool {
 	return false
 }
 
-func (service *ProductService) AddBatch(ctx context.Context, reference, sku string, qty int, eta time.Time) {
+func (service *ProductService) AddBatch(ctx context.Context, reference, sku string, qty int, eta time.Time) error {
 	batch := &domain.Batch{
 		Reference:         reference,
 		SKU:               sku,
 		PurchasedQuantity: qty,
 		ETA:               eta,
 	}
+
 	product := mapper.ProductToDomain(service.repo.Get(ctx, sku))
 	if product == nil {
 		product = domain.NewProduct(sku, make([]*domain.Batch, 0))
 	}
 	product.Batches = append(product.Batches, batch)
-	service.repo.Add(ctx, mapper.ProductToEntity(product))
-
+	productEntity := mapper.ProductToEntity(product)
+	return service.repo.Add(ctx, productEntity)
 }
 
 func (service *ProductService) Allocate(ctx context.Context, orderID, sku string, qty int) (string, error) {
 	line := domain.NewOrderLine(orderID, sku, qty)
-	batches := mapper.BatchToArrayOfPointers(service.repo.Get(ctx, sku).Batches)
-	if !IsValidSku(sku, batches) {
+
+	product := mapper.ProductToDomain(service.repo.Get(ctx, sku))
+	if product == nil {
 		return "", fmt.Errorf("sku validation: %w", InvalidSku)
 	}
-	batch, err := domain.Allocate(line, mapper.BatchToDomainMany(batches))
+
+	batch, err := product.Allocate(line)
 	if err != nil {
-		return "", fmt.Errorf("domain allocation: %w", err)
+		return "", err
 	}
 	return batch.Reference, nil
 }

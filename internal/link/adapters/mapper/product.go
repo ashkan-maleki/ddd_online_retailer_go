@@ -6,6 +6,9 @@ import (
 )
 
 func ProductToDomain(p *entity.Product) *domain.Product {
+	if p == nil {
+		return nil
+	}
 	batches := BatchToDomainMany(BatchToArrayOfPointers(p.Batches))
 	product := domain.NewProduct(p.SKU, batches)
 	product.VersionNumber = p.VersionNumber

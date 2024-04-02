@@ -21,12 +21,22 @@ func newBatchRepo() *adapters.ProductRepo {
 func TestAddBatch(t *testing.T) {
 	ctx := context.Background()
 	repo := newBatchRepo()
-	ref := "b1"
 	service := NewBatchService(repo)
-	service.AddBatch(ctx, ref, "CRUNCHY-ARMCHAIR", 100, time.Time{})
-	got := repo.Get(ctx, ref)
-	assert.NotNil(t, got)
-	assert.Equal(t, ref, got.Reference)
+
+	ref := "b1"
+	sku := "CRUNCHY-ARMCHAIR"
+
+	_ = service.AddBatch(ctx, ref, sku, 100, time.Time{})
+	product := repo.Get(ctx, sku)
+	assert.NotNil(t, product)
+	assert.NotNil(t, product.Batches)
+	found := false
+	for _, batch := range product.Batches {
+		if batch.Reference == ref {
+			found = true
+		}
+	}
+	assert.True(t, found)
 }
 
 func TestAllocateReturnAllocation(t *testing.T) {

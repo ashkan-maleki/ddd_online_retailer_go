@@ -17,14 +17,18 @@ func NewBatchRepo() (*ProductRepo, error) {
 	return &ProductRepo{db: db}, nil
 }
 
-func (repo *ProductRepo) Add(ctx context.Context, product *entity.Product) {
-	repo.db.WithContext(ctx).Create(product)
+func (repo *ProductRepo) Add(ctx context.Context, product *entity.Product) error {
+	tx := repo.db.WithContext(ctx).Create(product)
+	return tx.Error
 
 }
 
 func (repo *ProductRepo) Get(ctx context.Context, sku string) *entity.Product {
 	var product entity.Product
-	repo.db.WithContext(ctx).Where("sku = ?", sku).
+	tx := repo.db.WithContext(ctx).Where("sku = ?", sku).
 		Preload("Batches.Allocations.OrderLine").First(&product)
+	if tx.Error != nil {
+		return nil
+	}
 	return &product
 }
