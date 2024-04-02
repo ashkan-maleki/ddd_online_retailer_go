@@ -32,7 +32,7 @@ func TestRepositoryCanSaveABatchAndAProduct(t *testing.T) {
 	db := orm.CreateInMemoryGormDb()
 
 	var got entity.Product
-	db.Where("sku = ?", batch.Reference, batch.SKU).Preload("Batches").First(&got)
+	db.Where("sku = ?", batch.SKU).Preload("Batches").First(&got)
 	assert.Equal(t, expected, got)
 }
 
