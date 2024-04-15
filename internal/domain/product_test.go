@@ -62,17 +62,29 @@ func TestReturnsAllocatedBatchRef(t *testing.T) {
 	assert.Equal(t, inStockBatch.Reference, ref.Reference)
 }
 
-func TestReturnsOutOfStockExceptionIfCannotAllocate(t *testing.T) {
-	batch := NewBatch("batch1", "SMALL-FORK", 10, time.Time{})
-	line1 := NewOrderLine("order1", "SMALL-FORK", 10)
-	line2 := NewOrderLine("order2", "SMALL-FORK", 10)
+//func TestReturnsOutOfStockExceptionIfCannotAllocate(t *testing.T) {
+//	batch := NewBatch("batch1", "SMALL-FORK", 10, time.Time{})
+//	line1 := NewOrderLine("order1", "SMALL-FORK", 10)
+//	line2 := NewOrderLine("order2", "SMALL-FORK", 10)
+//
+//	_, err := Allocate(line1, []*Batch{batch})
+//	if err != nil {
+//		assert.ErrorIs(t, err, OutOfStock)
+//	}
+//
+//	_, err = Allocate(line2, []*Batch{batch})
+//	assert.ErrorIs(t, err, OutOfStock)
+//}
 
-	_, err := Allocate(line1, []*Batch{batch})
-	if err != nil {
-		assert.ErrorIs(t, err, OutOfStock)
-	}
+func TestReturnsOutOfStockEventIfCannotAllocate(t *testing.T) {
+	sku := "SMALL-FORK"
+	batch := NewBatch("batch1", sku, 10, time.Time{})
+	product := NewProduct(sku, []*Batch{batch})
+	line1 := NewOrderLine("order1", sku, 10)
+	line2 := NewOrderLine("order2", sku, 10)
 
-	_, err = Allocate(line2, []*Batch{batch})
-	assert.ErrorIs(t, err, OutOfStock)
-
+	_ = product.Allocate(line1)
+	allocation := product.Allocate(line2)
+	assert.True(t, product.HasOutOfStockEventAsLast())
+	assert.NotNil(t, allocation)
 }
