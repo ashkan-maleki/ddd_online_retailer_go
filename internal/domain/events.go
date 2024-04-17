@@ -1,31 +1,45 @@
 package domain
 
 import (
-	"github.com/rs/xid"
+	"fmt"
+	"reflect"
+)
+
+const (
+	OutOfStockEvent = "OutOfStock"
 )
 
 type Event interface {
-	ID() xid.ID
+	ID() string
+	Name() string
 }
 
-type OutOfStockEvent struct {
-	id  xid.ID
+type OutOfStock struct {
 	sku string
 }
 
-func NewOutOfStockEvent(sku string) *OutOfStockEvent {
-	return &OutOfStockEvent{
-		id:  xid.New(),
+func NewOutOfStockEvent(sku string) *OutOfStock {
+	return &OutOfStock{
 		sku: sku,
 	}
+
 }
 
-var _ Event = (*OutOfStockEvent)(nil)
+var _ Event = (*OutOfStock)(nil)
 
-func (o OutOfStockEvent) ID() xid.ID {
-	return o.id
-}
-
-func (o OutOfStockEvent) Sku() string {
+func (o OutOfStock) ID() string {
 	return o.sku
+}
+
+func (o OutOfStock) Sku() string {
+	return o.sku
+}
+
+func (o OutOfStock) Name() string {
+
+	eventName := reflect.TypeOf(o).Name()
+	if eventName != OutOfStockEvent {
+		panic(fmt.Sprintf("event name collision, %v != %v", eventName, OutOfStockEvent))
+	}
+	return eventName
 }

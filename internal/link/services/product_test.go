@@ -10,7 +10,7 @@ import (
 )
 
 func newBatchRepo() *adapters.ProductRepo {
-	repo, err := adapters.NewBatchRepo()
+	repo, err := adapters.NewProductRepo()
 	if err != nil {
 		log.Println(err)
 		panic("new batch repo failed")

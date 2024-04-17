@@ -17,7 +17,7 @@ func NewApplication() (*Application, error) {
 
 	app := &Application{}
 	app.rest = fiber.New()
-	repo, err := adapters.NewBatchRepo()
+	repo, err := adapters.NewProductRepo()
 	if err != nil {
 		return nil, err
 	}

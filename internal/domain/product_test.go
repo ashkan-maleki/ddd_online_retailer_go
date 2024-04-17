@@ -25,7 +25,7 @@ func TestPrefersCurrentStockBatchesToShipments(t *testing.T) {
 
 	_, err := Allocate(line, []*Batch{inStockBatch, shipmentBatch})
 	if err != nil {
-		assert.ErrorIs(t, err, OutOfStock)
+		assert.ErrorIs(t, err, OutOfStockErr)
 	}
 
 	assert.Equal(t, 90, inStockBatch.AvailableQuantity())
@@ -41,7 +41,7 @@ func TestPrefersEarlierBatches(t *testing.T) {
 
 	_, err := Allocate(line, []*Batch{medium, earliest, latest})
 	if err != nil {
-		assert.ErrorIs(t, err, OutOfStock)
+		assert.ErrorIs(t, err, OutOfStockErr)
 	}
 
 	assert.Equal(t, 90, earliest.AvailableQuantity())
@@ -56,7 +56,7 @@ func TestReturnsAllocatedBatchRef(t *testing.T) {
 
 	ref, err := Allocate(line, []*Batch{inStockBatch, shipmentBatch})
 	if err != nil {
-		assert.ErrorIs(t, err, OutOfStock)
+		assert.ErrorIs(t, err, OutOfStockErr)
 	}
 
 	assert.Equal(t, inStockBatch.Reference, ref.Reference)
@@ -69,11 +69,11 @@ func TestReturnsAllocatedBatchRef(t *testing.T) {
 //
 //	_, err := Allocate(line1, []*Batch{batch})
 //	if err != nil {
-//		assert.ErrorIs(t, err, OutOfStock)
+//		assert.ErrorIs(t, err, OutOfStockErr)
 //	}
 //
 //	_, err = Allocate(line2, []*Batch{batch})
-//	assert.ErrorIs(t, err, OutOfStock)
+//	assert.ErrorIs(t, err, OutOfStockErr)
 //}
 
 func TestReturnsOutOfStockEventIfCannotAllocate(t *testing.T) {
@@ -83,8 +83,10 @@ func TestReturnsOutOfStockEventIfCannotAllocate(t *testing.T) {
 	line1 := NewOrderLine("order1", sku, 10)
 	line2 := NewOrderLine("order2", sku, 10)
 
-	_ = product.Allocate(line1)
-	allocation := product.Allocate(line2)
+	_, _ = product.Allocate(line1)
+	allocation, err := product.Allocate(line2)
 	assert.True(t, product.HasOutOfStockEventAsLast())
-	assert.NotNil(t, allocation)
+	assert.Nil(t, allocation)
+	assert.NotNil(t, err)
+	assert.ErrorIs(t, err, OutOfStockErr)
 }

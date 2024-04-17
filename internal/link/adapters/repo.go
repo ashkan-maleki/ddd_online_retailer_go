@@ -8,10 +8,15 @@ import (
 )
 
 type ProductRepo struct {
-	db *gorm.DB
+	db   *gorm.DB
+	seen []*entity.Product
 }
 
-func NewBatchRepo() (*ProductRepo, error) {
+func (repo *ProductRepo) Seen() []*entity.Product {
+	return repo.seen
+}
+
+func NewProductRepo() (*ProductRepo, error) {
 	db := orm.CreateInMemoryGormDb()
 	orm.AutoMigrate(db)
 	return &ProductRepo{db: db}, nil
@@ -19,8 +24,12 @@ func NewBatchRepo() (*ProductRepo, error) {
 
 func (repo *ProductRepo) Add(ctx context.Context, product *entity.Product) error {
 	tx := repo.db.WithContext(ctx).Create(product)
+	repo.addSeenProduct(product)
 	return tx.Error
+}
 
+func (repo *ProductRepo) addSeenProduct(product *entity.Product) {
+	repo.seen = append(repo.seen, product)
 }
 
 func (repo *ProductRepo) Get(ctx context.Context, sku string) *entity.Product {
@@ -30,5 +39,6 @@ func (repo *ProductRepo) Get(ctx context.Context, sku string) *entity.Product {
 	if tx.Error != nil {
 		return nil
 	}
+	repo.addSeenProduct(&product)
 	return &product
 }

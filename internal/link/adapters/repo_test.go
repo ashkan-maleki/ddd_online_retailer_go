@@ -37,7 +37,7 @@ func TestRepositoryCanSaveABatchAndAProduct(t *testing.T) {
 }
 
 func newBatchRepo() *ProductRepo {
-	repo, err := NewBatchRepo()
+	repo, err := NewProductRepo()
 	if err != nil {
 		log.Println(err)
 		panic("new batch repo failed")

@@ -11,6 +11,9 @@ func ProductToDomain(p *entity.Product) *domain.Product {
 	}
 	batches := BatchToDomainMany(BatchToArrayOfPointers(p.Batches))
 	product := domain.NewProduct(p.SKU, batches)
+	for _, event := range p.Events() {
+		product.AddEvent(event)
+	}
 	product.VersionNumber = p.VersionNumber
 	return product
 }
@@ -21,6 +24,9 @@ func ProductToEntity(p *domain.Product) *entity.Product {
 		SKU:           p.SKU,
 		Batches:       batches,
 		VersionNumber: p.VersionNumber,
+	}
+	for _, event := range p.Events() {
+		product.AddEvent(event)
 	}
 	return product
 }

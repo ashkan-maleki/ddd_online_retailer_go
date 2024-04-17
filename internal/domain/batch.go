@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+var OutOfStockErr = errors.New("out of stock")
+
 type Batch struct {
 	Reference         string
 	SKU               string
@@ -70,8 +72,6 @@ func (b *Batch) Allocations() []OrderLine {
 	return b.allocations
 }
 
-var OutOfStock = errors.New("out of stock")
-
 func Allocate(line OrderLine, batches []*Batch) (*Batch, error) {
 	sort.Slice(batches, func(i, j int) bool {
 		return batches[i].ETA.Before(batches[j].ETA)
@@ -82,5 +82,5 @@ func Allocate(line OrderLine, batches []*Batch) (*Batch, error) {
 			return batch, nil
 		}
 	}
-	return nil, OutOfStock
+	return nil, OutOfStockErr
 }
