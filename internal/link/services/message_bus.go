@@ -30,5 +30,3 @@ func Handle(event domain.Event) {
 		handler(event)
 	}
 }
-
-// TODO: Read
