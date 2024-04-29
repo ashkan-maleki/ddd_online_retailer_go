@@ -17,9 +17,23 @@ func SendOutOfStockNotification(event events.Event) {
 	SendEmail("stock@eshop.com", fmt.Sprintf("out of stock for %v", outOfStock.Sku()))
 }
 
+func AddBatch(event events.Event) {
+
+}
+
+func Allocate(event events.Event) {
+
+}
+
+func ChangeBatchQuantity(event events.Event) {
+
+}
+
 func Register() {
+	Handlers[events.BatchCreatedEvent] = []HandleFunc{AddBatch}
+	Handlers[events.BatchQuantityChangedEvent] = []HandleFunc{ChangeBatchQuantity}
+	Handlers[events.AllocationRequiredEvent] = []HandleFunc{Allocate}
 	Handlers[events.OutOfStockEvent] = []HandleFunc{SendOutOfStockNotification}
-	Handlers[events.AllocationRequiredEvent] = []HandleFunc{SendOutOfStockNotification}
 }
 
 func Handle(event events.Event) {
