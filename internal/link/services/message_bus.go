@@ -2,15 +2,15 @@ package services
 
 import (
 	"fmt"
-	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/events"
 )
 
-type HandleFunc func(event domain.Event)
+type HandleFunc func(event events.Event)
 
 var Handlers = make(map[string][]HandleFunc)
 
-func SendOutOfStockNotification(event domain.Event) {
-	outOfStock, ok := event.(domain.OutOfStock)
+func SendOutOfStockNotification(event events.Event) {
+	outOfStock, ok := event.(events.OutOfStock)
 	if ok {
 		panic(fmt.Sprintf("wrong event type %v", event.Name()))
 	}
@@ -18,10 +18,11 @@ func SendOutOfStockNotification(event domain.Event) {
 }
 
 func Register() {
-	Handlers[domain.OutOfStockEvent] = []HandleFunc{SendOutOfStockNotification}
+	Handlers[events.OutOfStockEvent] = []HandleFunc{SendOutOfStockNotification}
+	Handlers[events.AllocationRequiredEvent] = []HandleFunc{SendOutOfStockNotification}
 }
 
-func Handle(event domain.Event) {
+func Handle(event events.Event) {
 	handlers, ok := Handlers[event.Name()]
 	if !ok {
 		panic(fmt.Sprintf("no handler is registered for %v", event.Name()))
