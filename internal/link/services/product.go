@@ -59,5 +59,6 @@ func (service *ProductService) Allocate(ctx context.Context, orderID, sku string
 	if err != nil {
 		return "", err
 	}
+	// TODO: Save allocations in the database
 	return batch.Reference, nil
 }
