@@ -72,6 +72,18 @@ func (b *Batch) Allocations() []OrderLine {
 	return b.allocations
 }
 
+func (b *Batch) DeallocateOne() *OrderLine {
+	if len(b.allocations) > 1 {
+		b.allocations = b.allocations[1:]
+		return &b.allocations[0]
+	} else if len(b.allocations) == 1 {
+		b.allocations = make([]OrderLine, 0)
+		return &b.allocations[0]
+	} else {
+		return nil
+	}
+}
+
 func Allocate(line OrderLine, batches []*Batch) (*Batch, error) {
 	sort.Slice(batches, func(i, j int) bool {
 		return batches[i].ETA.Before(batches[j].ETA)

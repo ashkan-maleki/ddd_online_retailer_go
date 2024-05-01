@@ -47,3 +47,14 @@ func (repo *ProductRepo) Get(ctx context.Context, sku string) *entity.Product {
 	repo.addSeenProduct(&product)
 	return &product
 }
+
+func (repo *ProductRepo) GetByBatchRef(ctx context.Context, ref string) *entity.Product {
+	var product entity.Product
+	tx := repo.db.WithContext(ctx).Joins("Batch", repo.db.Where(&entity.Batch{Reference: ref})).
+		Preload("Batches.Allocations.OrderLine").First(&product)
+	if tx.Error != nil {
+		return nil
+	}
+	repo.addSeenProduct(&product)
+	return &product
+}

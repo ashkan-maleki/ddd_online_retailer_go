@@ -83,8 +83,13 @@ func ChangeBatchQuantity(ctx context.Context, event events.Event, repo *adapters
 		return nil, fmt.Errorf("wrong event type %v", event.Name())
 	}
 
-	fmt.Println(batchQuantityChanged)
-
+	productEnt := repo.GetByBatchRef(ctx, batchQuantityChanged.Ref())
+	product := mapper.ProductToDomain(productEnt)
+	product.ChangeBatchQuantity(batchQuantityChanged.Ref(), batchQuantityChanged.Qty())
+	err := repo.Update(ctx, mapper.ProductToEntity(product))
+	if err != nil {
+		return nil, err
+	}
 	return nil, nil
 }
 
@@ -105,12 +110,17 @@ func Handle(ctx context.Context, event events.Event) ([]any, error) {
 		return nil, err
 	}
 	results := make([]any, 0)
-	for _, handler := range handlers {
-		result, err := handler(ctx, event, repo)
-		if err != nil {
-			return nil, err
+	queue := []events.Event{event}
+	for len(queue) > 0 {
+		eventInQueue := queue[0]
+		for _, handler := range handlers {
+			result, err := handler(ctx, eventInQueue, repo)
+			if err != nil {
+				return nil, err
+			}
+			results = append(results, result)
 		}
-		results = append(results, result)
 	}
+
 	return results, nil
 }

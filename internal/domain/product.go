@@ -62,3 +62,18 @@ func (p *Product) Allocate(line OrderLine) (*Batch, error) {
 	p.events = append(p.events, events2.NewOutOfStockEvent(line.SKU))
 	return nil, OutOfStockErr
 }
+
+func (p *Product) ChangeBatchQuantity(ref string, qty int) {
+	var batch *Batch
+	for _, b := range p.Batches {
+		if b.Reference == ref {
+			batch = b
+		}
+	}
+	batch.PurchasedQuantity = qty
+
+	for batch.AvailableQuantity() < 0 {
+		line := batch.DeallocateOne()
+		p.events = append(p.events, events2.NewAllocationRequired(line.OrderID, line.SKU, line.Qty))
+	}
+}
