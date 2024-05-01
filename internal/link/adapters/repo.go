@@ -28,6 +28,11 @@ func (repo *ProductRepo) Add(ctx context.Context, product *entity.Product) error
 	return tx.Error
 }
 
+func (repo *ProductRepo) Update(ctx context.Context, product *entity.Product) error {
+	tx := repo.db.WithContext(ctx).Save(product)
+	return tx.Error
+}
+
 func (repo *ProductRepo) addSeenProduct(product *entity.Product) {
 	repo.seen = append(repo.seen, product)
 }

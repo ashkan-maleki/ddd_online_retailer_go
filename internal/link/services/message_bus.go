@@ -29,7 +29,6 @@ func AddBatch(ctx context.Context, event events.Event, repo *adapters.ProductRep
 		return nil, fmt.Errorf("wrong event type %v", event.Name())
 	}
 
-	fmt.Println(batchCreated)
 	product := repo.Get(ctx, batchCreated.Sku())
 	if product == nil {
 		product = &entity.Product{
@@ -58,8 +57,6 @@ func Allocate(ctx context.Context, event events.Event, repo *adapters.ProductRep
 		return nil, fmt.Errorf("wrong event type %v", event.Name())
 	}
 
-	fmt.Println(allocationRequired)
-
 	sku := allocationRequired.Sku()
 	line := domain.NewOrderLine(allocationRequired.OrderId(), sku, allocationRequired.Qty())
 
@@ -73,7 +70,10 @@ func Allocate(ctx context.Context, event events.Event, repo *adapters.ProductRep
 		return "", err
 	}
 
-	// TODO: Save allocations in the database
+	err = repo.Update(ctx, mapper.ProductToEntity(product))
+	if err != nil {
+		return nil, err
+	}
 	return batch.Reference, nil
 }
 
