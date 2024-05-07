@@ -3,95 +3,13 @@ package services
 import (
 	"context"
 	"fmt"
-	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/events"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/link/adapters"
-	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/link/adapters/mapper"
-	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/persistence/entity"
 )
 
 type HandleFunc func(context.Context, events.Event, *adapters.ProductRepo) (any, error)
 
 var Handlers = make(map[string][]HandleFunc)
-
-func SendOutOfStockNotification(_ context.Context, event events.Event, _ *adapters.ProductRepo) (any, error) {
-	outOfStock, ok := event.(events.OutOfStock)
-	if ok {
-		return nil, fmt.Errorf("wrong event type %v", event.Name())
-	}
-	SendEmail("stock@eshop.com", fmt.Sprintf("out of stock for %v", outOfStock.Sku()))
-	return nil, nil
-}
-
-func AddBatch(ctx context.Context, event events.Event, repo *adapters.ProductRepo) (any, error) {
-	batchCreated, ok := event.(events.BatchCreated)
-	if ok {
-		return nil, fmt.Errorf("wrong event type %v", event.Name())
-	}
-
-	product := repo.Get(ctx, batchCreated.Sku())
-	if product == nil {
-		product = &entity.Product{
-			SKU:     batchCreated.Sku(),
-			Batches: make([]entity.Batch, 0),
-		}
-	}
-
-	batch := entity.Batch{
-		Reference:         batchCreated.Ref(),
-		SKU:               batchCreated.Sku(),
-		PurchasedQuantity: batchCreated.Qty(),
-		ETA:               batchCreated.Eta(),
-	}
-	product.Batches = append(product.Batches, batch)
-	err := repo.Add(ctx, product)
-	if err != nil {
-		return nil, err
-	}
-	return nil, nil
-}
-
-func Allocate(ctx context.Context, event events.Event, repo *adapters.ProductRepo) (any, error) {
-	allocationRequired, ok := event.(events.AllocationRequired)
-	if ok {
-		return nil, fmt.Errorf("wrong event type %v", event.Name())
-	}
-
-	sku := allocationRequired.Sku()
-	line := domain.NewOrderLine(allocationRequired.OrderId(), sku, allocationRequired.Qty())
-
-	product := mapper.ProductToDomain(repo.Get(ctx, sku))
-	if product == nil {
-		return "", fmt.Errorf("sku validation: %w", InvalidSku)
-	}
-
-	batch, err := product.Allocate(line)
-	if err != nil {
-		return "", err
-	}
-
-	err = repo.Update(ctx, mapper.ProductToEntity(product))
-	if err != nil {
-		return nil, err
-	}
-	return batch.Reference, nil
-}
-
-func ChangeBatchQuantity(ctx context.Context, event events.Event, repo *adapters.ProductRepo) (any, error) {
-	batchQuantityChanged, ok := event.(events.BatchQuantityChanged)
-	if ok {
-		return nil, fmt.Errorf("wrong event type %v", event.Name())
-	}
-
-	productEnt := repo.GetByBatchRef(ctx, batchQuantityChanged.Ref())
-	product := mapper.ProductToDomain(productEnt)
-	product.ChangeBatchQuantity(batchQuantityChanged.Ref(), batchQuantityChanged.Qty())
-	err := repo.Update(ctx, mapper.ProductToEntity(product))
-	if err != nil {
-		return nil, err
-	}
-	return nil, nil
-}
 
 func Register() {
 	Handlers[events.BatchCreatedEvent] = []HandleFunc{AddBatch}
@@ -100,27 +18,67 @@ func Register() {
 	Handlers[events.OutOfStockEvent] = []HandleFunc{SendOutOfStockNotification}
 }
 
-func Handle(ctx context.Context, event events.Event) ([]any, error) {
+func collectNewEventsChannel(repo *adapters.ProductRepo) <-chan events.Event {
+	ch := make(chan events.Event)
+	go func() {
+		for _, product := range repo.Seen() {
+			for product.HasEvent() {
+				event := product.PopEvent()
+				ch <- event
+			}
+		}
+	}()
+	return ch
+}
+
+func collectNewEvents(repo *adapters.ProductRepo) []events.Event {
+	fmt.Println("***********")
+	fmt.Println("seen: ", repo.Seen())
+	eves := make([]events.Event, 0)
+	for _, product := range repo.Seen() {
+		fmt.Println("product: ", product.SKU)
+		fmt.Println("product event size: ", len(product.Events()))
+		for product.HasEvent() {
+			event := product.PopEvent()
+			fmt.Println("event loop: ", event)
+			eves = append(eves, event)
+		}
+	}
+	fmt.Println("collected events size: ", len(eves))
+	fmt.Println("collected events: ", eves)
+	return eves
+}
+
+type iterator func(yield func(events.Event) bool)
+
+func Handle(ctx context.Context, event events.Event, repo *adapters.ProductRepo) ([]any, error) {
+	fmt.Println("event name: ", event.Name())
 	handlers, ok := Handlers[event.Name()]
 	if !ok {
 		return nil, fmt.Errorf("no handler is registered for %v", event.Name())
 	}
-	repo, err := adapters.NewProductRepo()
-	if err != nil {
-		return nil, err
-	}
 	results := make([]any, 0)
 	queue := []events.Event{event}
+	handlersErrors := make([]error, 0)
 	for len(queue) > 0 {
 		eventInQueue := queue[0]
 		for _, handler := range handlers {
 			result, err := handler(ctx, eventInQueue, repo)
 			if err != nil {
-				return nil, err
+				handlersErrors = append(handlersErrors, err)
+				//return nil, err
 			}
 			results = append(results, result)
+			for _, ev := range collectNewEvents(repo) {
+				fmt.Println("events: ", ev)
+				queue = append(queue, ev)
+			}
 		}
+		queue = queue[1:]
 	}
-
-	return results, nil
+	var err error
+	if len(handlersErrors) > 0 {
+		err = handlersErrors[0]
+	}
+	return results, err
 }

@@ -47,11 +47,13 @@ func (p *Product) AddEvent(event events.Event) {
 
 func (p *Product) PopEvent() events.Event {
 	if len(p.events) > 1 {
+		event := p.events[0]
 		p.events = p.events[1:]
-		return p.events[0]
+		return event
 	} else if len(p.events) == 1 {
+		event := p.events[0]
 		p.events = make([]events.Event, 0)
-		return p.events[0]
+		return event
 	} else {
 		return nil
 	}

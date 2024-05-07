@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"context"
+	"fmt"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/persistence/entity"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/persistence/orm"
 	"gorm.io/gorm"
@@ -30,6 +31,8 @@ func (repo *ProductRepo) Add(ctx context.Context, product *entity.Product) error
 
 func (repo *ProductRepo) Update(ctx context.Context, product *entity.Product) error {
 	tx := repo.db.WithContext(ctx).Save(product)
+	repo.addSeenProduct(product)
+	fmt.Println("inside repo: ", len(product.Events()))
 	return tx.Error
 }
 

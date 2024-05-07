@@ -16,24 +16,24 @@ func NewAllocationRequired(orderId string, sku string, qty int) *AllocationRequi
 
 var _ Event = (*AllocationRequired)(nil)
 
-func (a AllocationRequired) Qty() int {
-	return a.qty
+func (e *AllocationRequired) Qty() int {
+	return e.qty
 }
 
-func (a AllocationRequired) Sku() string {
-	return a.sku
+func (e *AllocationRequired) Sku() string {
+	return e.sku
 }
 
-func (a AllocationRequired) OrderId() string {
-	return a.orderId
+func (e *AllocationRequired) OrderId() string {
+	return e.orderId
 }
 
-func (a AllocationRequired) ID() string {
-	return a.sku
+func (e *AllocationRequired) ID() string {
+	return e.sku
 }
 
-func (a AllocationRequired) Name() string {
-	eventName := reflect.TypeOf(a).Name()
+func (e *AllocationRequired) Name() string {
+	eventName := reflect.TypeOf(*e).Name()
 	if eventName != AllocationRequiredEvent {
 		panic(fmt.Sprintf("event name collision, %v != %v", eventName, AllocationRequiredEvent))
 	}

@@ -60,6 +60,8 @@ func (p *Product) Allocate(line OrderLine) (*Batch, error) {
 		}
 	}
 	p.events = append(p.events, events2.NewOutOfStockEvent(line.SKU))
+	//fmt.Println(">>> ", len(p.events))
+	//fmt.Println(">>> ", p.events[0])
 	return nil, OutOfStockErr
 }
 

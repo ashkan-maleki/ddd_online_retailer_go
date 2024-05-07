@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/link/adapters"
 	"github.com/gofiber/fiber/v2/log"
 )
@@ -17,13 +18,14 @@ func (uow *UnitOfWork) publishEvents() {
 	for _, product := range uow.Product.Seen() {
 		for product.HasEvent() {
 			event := product.PopEvent()
-			Handle(event)
+			Handle(context.Background(), event, uow.Product)
 		}
 	}
 }
 
-func NewUnitOfWork() *UnitOfWork {
+func UoW() *UnitOfWork {
 	repo, err := adapters.NewProductRepo()
 	log.Error(err)
+	Register()
 	return &UnitOfWork{Product: repo}
 }
