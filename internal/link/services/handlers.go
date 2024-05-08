@@ -12,13 +12,20 @@ import (
 )
 
 func SendOutOfStockNotification(_ context.Context, event events.Event, _ *adapters.ProductRepo) (any, error) {
-	fmt.Println("email is  sent")
-	outOfStock, ok := event.(events.OutOfStock)
-	if ok {
+
+	var outOfStock *events.OutOfStock
+	switch a := event.(type) {
+	case *events.OutOfStock:
+		outOfStock = a
+		break
+
+	default:
 		return nil, fmt.Errorf("wrong event type %v", event.Name())
 	}
+
 	emailMessage := fmt.Sprintf("out of stock for %v", outOfStock.Sku())
 	SendEmail("stock@eshop.com", emailMessage)
+	fmt.Println("email is  sent")
 	return emailMessage, nil
 }
 
@@ -82,17 +89,17 @@ func Allocate(ctx context.Context, event events.Event, repo *adapters.ProductRep
 
 	if allocationErr == nil || errors.Is(allocationErr, domain.OutOfStockErr) {
 		productEntity := mapper.ProductToEntity(product)
-		fmt.Println("productEntity: ", productEntity)
-		fmt.Println("productEntity sku: ", productEntity.SKU)
-		fmt.Println("productEntity events size: ", len(productEntity.Events()))
-		if len(productEntity.Events()) > 0 {
-			fmt.Println("productEntity event: ", productEntity.Events()[0])
-		}
+		//fmt.Println("productEntity: ", productEntity)
+		//fmt.Println("productEntity sku: ", productEntity.SKU)
+		//fmt.Println("productEntity events size: ", len(productEntity.Events()))
+		//if len(productEntity.Events()) > 0 {
+		//	fmt.Println("productEntity event: ", productEntity.Events()[0])
+		//}
 		err := repo.Update(ctx, productEntity)
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println("repo: ", collectNewEvents(repo))
+		//fmt.Println("repo: ", collectNewEvents(repo))
 	}
 
 	if allocationErr != nil {

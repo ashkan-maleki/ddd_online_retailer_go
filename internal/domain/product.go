@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	events2 "github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/events"
 	"sort"
 )
@@ -59,6 +60,7 @@ func (p *Product) Allocate(line OrderLine) (*Batch, error) {
 			return batch, nil
 		}
 	}
+	fmt.Println("line sku: ", line.SKU)
 	p.events = append(p.events, events2.NewOutOfStockEvent(line.SKU))
 	//fmt.Println(">>> ", len(p.events))
 	//fmt.Println(">>> ", p.events[0])

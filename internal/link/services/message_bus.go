@@ -32,53 +32,56 @@ func collectNewEventsChannel(repo *adapters.ProductRepo) <-chan events.Event {
 }
 
 func collectNewEvents(repo *adapters.ProductRepo) []events.Event {
-	fmt.Println("***********")
-	fmt.Println("seen: ", repo.Seen())
 	eves := make([]events.Event, 0)
 	for _, product := range repo.Seen() {
-		fmt.Println("product: ", product.SKU)
-		fmt.Println("product event size: ", len(product.Events()))
 		for product.HasEvent() {
 			event := product.PopEvent()
-			fmt.Println("event loop: ", event)
 			eves = append(eves, event)
 		}
 	}
-	fmt.Println("collected events size: ", len(eves))
-	fmt.Println("collected events: ", eves)
+	fmt.Println("collected size, inside: ", len(eves))
 	return eves
 }
 
 type iterator func(yield func(events.Event) bool)
 
 func Handle(ctx context.Context, event events.Event, repo *adapters.ProductRepo) ([]any, error) {
-	fmt.Println("event name: ", event.Name())
-	handlers, ok := Handlers[event.Name()]
-	if !ok {
-		return nil, fmt.Errorf("no handler is registered for %v", event.Name())
-	}
+
 	results := make([]any, 0)
 	queue := []events.Event{event}
 	handlersErrors := make([]error, 0)
 	for len(queue) > 0 {
 		eventInQueue := queue[0]
+		fmt.Println("Handle, event ouf queue: ", fmt.Sprintf("(%v, %T)", eventInQueue, eventInQueue))
+		queue = queue[1:]
+		fmt.Println("event name: ", eventInQueue.Name())
+		handlers, ok := Handlers[eventInQueue.Name()]
+		if !ok {
+			return nil, fmt.Errorf("no handler is registered for %v", eventInQueue.Name())
+		}
 		for _, handler := range handlers {
 			result, err := handler(ctx, eventInQueue, repo)
 			if err != nil {
 				handlersErrors = append(handlersErrors, err)
 				//return nil, err
 			}
-			results = append(results, result)
-			for _, ev := range collectNewEvents(repo) {
-				fmt.Println("events: ", ev)
+			if result != nil {
+				results = append(results, result)
+			}
+			//fmt.Println("collected size, outside: ", len(collectNewEvents(repo)))
+			collectedEvents := collectNewEvents(repo)
+			for _, ev := range collectedEvents {
+				//fmt.Println("Handle, events: ", fmt.Sprintf("(%v, %T)", ev, ev))
 				queue = append(queue, ev)
 			}
 		}
-		queue = queue[1:]
+		fmt.Println("queue size: ", len(queue))
+
 	}
 	var err error
 	if len(handlersErrors) > 0 {
 		err = handlersErrors[0]
 	}
+	//fmt.Println("event loop: ", fmt.Sprintf("(%v, %T)", event, event))
 	return results, err
 }

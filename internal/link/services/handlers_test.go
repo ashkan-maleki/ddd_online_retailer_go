@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/events"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/link/adapters"
 	"github.com/stretchr/testify/assert"
@@ -123,10 +125,10 @@ func TestAllocate_SendsEmailOnOutOfStockError(t *testing.T) {
 	}
 
 	results, err := Handle(ctx, events.NewAllocationRequired("o1", sku, 10), uow.Product)
-	if err != nil {
+	if err != nil && !errors.Is(err, domain.OutOfStockErr) {
 		assert.Fail(t, "handle function error: "+err.Error())
 	}
 	fmt.Println("tests: ", len(results))
-	fmt.Println("tests res: ", results[0])
+	fmt.Println("tests res 0: ", results[0])
 	assert.Equal(t, fmt.Sprintf("out of stock for %v", sku), results[0])
 }
