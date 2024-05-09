@@ -127,6 +127,7 @@ func ChangeBatchQuantity(ctx context.Context, event events.Event, repo *adapters
 	toEntity := mapper.ProductToEntity(product)
 	fmt.Println("product entity available: ", mapper.ProductToDomain(toEntity).Batches[0].AvailableQuantity())
 	err := repo.Update(ctx, toEntity)
+	fmt.Println("XXXX: ", repo.Get(ctx, productEnt.SKU).Batches[0].PurchasedQuantity)
 	if err != nil {
 		return nil, err
 	}
