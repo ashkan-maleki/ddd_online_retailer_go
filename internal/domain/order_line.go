@@ -1,6 +1,7 @@
 package domain
 
 type OrderLine struct {
+	ID      int64
 	OrderID string
 	SKU     string
 	Qty     int

@@ -16,20 +16,20 @@ func NewBatchQuantityChanged(ref string, qty int) *BatchQuantityChanged {
 
 var _ Event = (*BatchQuantityChanged)(nil)
 
-func (b BatchQuantityChanged) Qty() int {
+func (b *BatchQuantityChanged) Qty() int {
 	return b.qty
 }
 
-func (b BatchQuantityChanged) Ref() string {
+func (b *BatchQuantityChanged) Ref() string {
 	return b.ref
 }
 
-func (b BatchQuantityChanged) ID() string {
+func (b *BatchQuantityChanged) ID() string {
 	return b.ref
 }
 
-func (b BatchQuantityChanged) Name() string {
-	eventName := reflect.TypeOf(b).Name()
+func (b *BatchQuantityChanged) Name() string {
+	eventName := reflect.TypeOf(*b).Name()
 	if eventName != BatchQuantityChangedEvent {
 		panic(fmt.Sprintf("event name collision, %v != %v", eventName, BatchQuantityChangedEvent))
 	}

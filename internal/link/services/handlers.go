@@ -109,15 +109,24 @@ func Allocate(ctx context.Context, event events.Event, repo *adapters.ProductRep
 }
 
 func ChangeBatchQuantity(ctx context.Context, event events.Event, repo *adapters.ProductRepo) (any, error) {
-	batchQuantityChanged, ok := event.(events.BatchQuantityChanged)
-	if ok {
+	var batchQuantityChanged *events.BatchQuantityChanged
+	switch a := event.(type) {
+	case *events.BatchQuantityChanged:
+		batchQuantityChanged = a
+		break
+
+	default:
 		return nil, fmt.Errorf("wrong event type %v", event.Name())
 	}
-
+	fmt.Println("batch ref: ", batchQuantityChanged.Ref())
 	productEnt := repo.GetByBatchRef(ctx, batchQuantityChanged.Ref())
+	fmt.Println("product entity is null: ", productEnt == nil)
 	product := mapper.ProductToDomain(productEnt)
 	product.ChangeBatchQuantity(batchQuantityChanged.Ref(), batchQuantityChanged.Qty())
-	err := repo.Update(ctx, mapper.ProductToEntity(product))
+	fmt.Println("product dom available: ", product.Batches[0].AvailableQuantity())
+	toEntity := mapper.ProductToEntity(product)
+	fmt.Println("product entity available: ", mapper.ProductToDomain(toEntity).Batches[0].AvailableQuantity())
+	err := repo.Update(ctx, toEntity)
 	if err != nil {
 		return nil, err
 	}

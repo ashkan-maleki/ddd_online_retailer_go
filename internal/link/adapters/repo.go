@@ -5,6 +5,7 @@ import (
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/persistence/entity"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/persistence/orm"
 	"gorm.io/gorm"
+	"log"
 )
 
 type ProductRepo struct {
@@ -29,8 +30,10 @@ func (repo *ProductRepo) Add(ctx context.Context, product *entity.Product) error
 }
 
 func (repo *ProductRepo) Update(ctx context.Context, product *entity.Product) error {
-	tx := repo.db.WithContext(ctx).Save(product)
+
+	tx := repo.db.WithContext(ctx).Updates(product)
 	repo.saveSeenProduct(product)
+
 	//fmt.Println("inside repo: ", len(product.Events()))
 	return tx.Error
 }
@@ -52,9 +55,15 @@ func (repo *ProductRepo) Get(ctx context.Context, sku string) *entity.Product {
 
 func (repo *ProductRepo) GetByBatchRef(ctx context.Context, ref string) *entity.Product {
 	var product entity.Product
-	tx := repo.db.WithContext(ctx).Joins("Batch", repo.db.Where(&entity.Batch{Reference: ref})).
+	tx := repo.db.WithContext(ctx).Preload("Batches", "reference = ?", ref).
 		Preload("Batches.Allocations.OrderLine").First(&product)
 	if tx.Error != nil {
+		log.Println("GetByBatchRef: ", tx.Error)
+		sql := repo.db.ToSQL(func(tx *gorm.DB) *gorm.DB {
+			return tx.WithContext(ctx).Preload("Batches", "reference = ?", ref).
+				Preload("Batches.Allocations.OrderLine").First(&product)
+		})
+		log.Println(sql)
 		return nil
 	}
 	repo.saveSeenProduct(&product)

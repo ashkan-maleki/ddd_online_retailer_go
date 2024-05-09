@@ -7,6 +7,7 @@ import (
 
 func BatchToDomain(bch *entity.Batch) *domain.Batch {
 	batch := domain.NewBatch(bch.Reference, bch.SKU, bch.PurchasedQuantity, bch.ETA)
+	batch.ID = bch.ID
 	for _, line := range bch.Allocations {
 		batch.Allocate(OrderLineToDomain(line.OrderLine))
 	}
@@ -15,6 +16,7 @@ func BatchToDomain(bch *entity.Batch) *domain.Batch {
 
 func BatchToEntity(bch *domain.Batch) *entity.Batch {
 	batch := &entity.Batch{
+		ID:                bch.ID,
 		Reference:         bch.Reference,
 		SKU:               bch.SKU,
 		PurchasedQuantity: bch.PurchasedQuantity,

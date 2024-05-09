@@ -7,6 +7,7 @@ import (
 
 func OrderLineToDomain(line entity.OrderLine) domain.OrderLine {
 	return domain.OrderLine{
+		ID:      line.ID,
 		OrderID: line.OrderID,
 		SKU:     line.SKU,
 		Qty:     line.Qty,
@@ -15,6 +16,7 @@ func OrderLineToDomain(line entity.OrderLine) domain.OrderLine {
 
 func OrderLineToEntity(line domain.OrderLine) entity.OrderLine {
 	return entity.OrderLine{
+		ID:      line.ID,
 		OrderID: line.OrderID,
 		SKU:     line.SKU,
 		Qty:     line.Qty,

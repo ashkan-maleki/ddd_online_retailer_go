@@ -9,6 +9,7 @@ import (
 var OutOfStockErr = errors.New("out of stock")
 
 type Batch struct {
+	ID                int64
 	Reference         string
 	SKU               string
 	PurchasedQuantity int

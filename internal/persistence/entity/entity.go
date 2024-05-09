@@ -24,10 +24,10 @@ type Batch struct {
 }
 
 type Allocation struct {
-	ID          int64 `gorm:"primaryKey"`
-	OrderLineID int64
+	//ID          int64 `gorm:"primaryKey"`
+	OrderLineID int64     `gorm:"primaryKey;autoIncrement:false"`
 	OrderLine   OrderLine `gorm:"foreignKey:ID;references:OrderLineID"`
-	BatchID     int64
+	BatchID     int64     `gorm:"primaryKey;autoIncrement:false"`
 }
 
 type Product struct {

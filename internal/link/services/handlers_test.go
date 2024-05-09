@@ -7,6 +7,7 @@ import (
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/events"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/link/adapters"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/link/adapters/mapper"
 	"github.com/stretchr/testify/assert"
 	"log"
 	"testing"
@@ -131,4 +132,36 @@ func TestAllocate_SendsEmailOnOutOfStockError(t *testing.T) {
 	fmt.Println("tests: ", len(results))
 	fmt.Println("tests res 0: ", results[0])
 	assert.Equal(t, fmt.Sprintf("out of stock for %v", sku), results[0])
+}
+
+func TestChangeBatchQuantity_ChangesAvailableQuantity(t *testing.T) {
+	ctx := context.Background()
+	uow := UoW()
+
+	ref := "batch1"
+	sku := "ADORABLE-SETTEE"
+
+	_, err := Handle(ctx, events.NewBatchCreated(sku, ref, 100, time.Time{}), uow.Product)
+	if err != nil {
+		assert.Fail(t, "handle function error: "+err.Error())
+	}
+
+	product := uow.Product.Get(ctx, sku)
+	assert.NotNil(t, product)
+	assert.Len(t, product.Batches, 1)
+	domainProduct := mapper.ProductToDomain(product)
+	fmt.Println("step 1")
+	assert.Equal(t, 100, domainProduct.Batches[0].AvailableQuantity())
+
+	_, err = Handle(ctx, events.NewBatchQuantityChanged(ref, 50), uow.Product)
+	if err != nil {
+		assert.Fail(t, "handle function error: "+err.Error())
+	}
+
+	product1 := uow.Product.Get(ctx, sku)
+	assert.NotNil(t, product1)
+	assert.Len(t, product1.Batches, 1)
+	domainProduct = mapper.ProductToDomain(product1)
+	fmt.Println("step 2")
+	assert.Equal(t, 50, domainProduct.Batches[0].AvailableQuantity())
 }
