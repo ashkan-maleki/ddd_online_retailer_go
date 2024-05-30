@@ -19,6 +19,7 @@ type GormDbDriver string
 
 const (
 	InMemory GormDbDriver = "file::memory:?cache=shared"
+	Sqlite   GormDbDriver = "retailer.db?cache=shared"
 )
 
 func NewGormRepository[E any](driver GormDbDriver, migrate MigrationInvoker, config *gorm.Config) *GormRepository[E] {

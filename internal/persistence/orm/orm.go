@@ -17,6 +17,15 @@ func CreateInMemoryGormDb() *gorm.DB {
 	return db
 }
 
+func CreateSqliteyGormDb() *gorm.DB {
+	db, err := gorm.Open(sqlite.Open(string(repository.Sqlite)), &gorm.Config{})
+	if err != nil {
+		log.Println(err)
+		panic("failed to connect database")
+	}
+	return db
+}
+
 func AutoMigrate(db *gorm.DB) {
 	err := db.AutoMigrate(&entity.Batch{})
 	if err != nil {

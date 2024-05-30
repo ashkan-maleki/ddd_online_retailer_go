@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"fmt"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/persistence/entity"
 )
@@ -8,9 +9,14 @@ import (
 func BatchToDomain(bch *entity.Batch) *domain.Batch {
 	batch := domain.NewBatch(bch.Reference, bch.SKU, bch.PurchasedQuantity, bch.ETA)
 	batch.ID = bch.ID
+	fmt.Printf(">>> (mapper), allocation lenth for entity is %d\n", len(bch.Allocations))
 	for _, line := range bch.Allocations {
+		fmt.Printf("loop startd: ")
+		fmt.Printf("%v\n", line)
 		batch.Allocate(OrderLineToDomain(line.OrderLine))
+		fmt.Printf("loop ended \n")
 	}
+	fmt.Printf(">>> (mapper), allocation lenth for domain is %d\n", len(batch.Allocations()))
 	return batch
 }
 

@@ -165,3 +165,46 @@ func TestChangeBatchQuantity_ChangesAvailableQuantity(t *testing.T) {
 	fmt.Println("step 2")
 	assert.Equal(t, 50, domainProduct.Batches[0].AvailableQuantity())
 }
+
+func TestChangeBatchQuantity_ReallocatesIfNecessary(t *testing.T) {
+	ctx := context.Background()
+	uow := UoW()
+
+	ref1 := "batch1"
+	ref2 := "batch2"
+	sku := "INDIFFERENT-TABLE"
+
+	eventsList := []events.Event{
+		events.NewBatchCreated(sku, ref1, 50, time.Time{}),
+		events.NewBatchCreated(sku, ref2, 50, time.Now()),
+		events.NewAllocationRequired("order1", sku, 20),
+		events.NewAllocationRequired("order2", sku, 20),
+	}
+
+	for _, event := range eventsList {
+		_, err := Handle(ctx, event, uow.Product)
+		if err != nil {
+			assert.Fail(t, "handle function error: "+err.Error())
+		}
+	}
+
+	batches := uow.Product.Get(ctx, sku).Batches
+	for i, batch := range batches {
+		fmt.Printf("#%d: number of allocated (ent) is %v\n", i, len(batch.Allocations))
+		toDomain := mapper.BatchToDomain(&batch)
+		fmt.Printf("#%d: quantity is %v\n", i, toDomain.AvailableQuantity())
+		fmt.Printf("#%d: number of allocated (domain) is %v\n", i, len(toDomain.Allocations()))
+	}
+	assert.Len(t, batches, 2)
+	assert.Equal(t, 10, mapper.BatchToDomain(&batches[1]).AvailableQuantity())
+	assert.Equal(t, 50, mapper.BatchToDomain(&batches[0]).AvailableQuantity())
+
+	//_, err := Handle(ctx, events.NewBatchQuantityChanged(ref1, 25), uow.Product)
+	//if err != nil {
+	//	assert.Fail(t, "handle function error: "+err.Error())
+	//}
+	//
+	//batches = uow.Product.Get(ctx, sku).Batches
+	//assert.Equal(t, 5, mapper.BatchToDomain(&batches[0]).AvailableQuantity())
+	//assert.Equal(t, 30, mapper.BatchToDomain(&batches[1]).AvailableQuantity())
+}

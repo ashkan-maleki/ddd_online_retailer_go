@@ -81,25 +81,23 @@ func Allocate(ctx context.Context, event events.Event, repo *adapters.ProductRep
 	sku := allocationRequired.Sku()
 	line := domain.NewOrderLine(allocationRequired.OrderId(), sku, allocationRequired.Qty())
 
-	product := mapper.ProductToDomain(repo.Get(ctx, sku))
+	get := repo.Get(ctx, sku)
+	gotBatch := get.Batches[0]
+	fmt.Printf("Batch with ref %v allocated size is %d\n", gotBatch.Reference, len(gotBatch.Allocations))
+	product := mapper.ProductToDomain(get)
+	fmt.Printf("Batch with ref %v allocated size is %d\n", product.Batches[1].Reference, len(product.Batches[1].Allocations()))
 	if product == nil {
 		return "", fmt.Errorf("sku validation: %w", InvalidSku)
 	}
 	batch, allocationErr := product.Allocate(line)
+	fmt.Printf("OrderID: %v, Product with ref %v has %d available\n", line.OrderID, batch.Reference, batch.AvailableQuantity())
 
 	if allocationErr == nil || errors.Is(allocationErr, domain.OutOfStockErr) {
 		productEntity := mapper.ProductToEntity(product)
-		//fmt.Println("productEntity: ", productEntity)
-		//fmt.Println("productEntity sku: ", productEntity.SKU)
-		//fmt.Println("productEntity events size: ", len(productEntity.Events()))
-		//if len(productEntity.Events()) > 0 {
-		//	fmt.Println("productEntity event: ", productEntity.Events()[0])
-		//}
 		err := repo.Update(ctx, productEntity)
 		if err != nil {
 			return nil, err
 		}
-		//fmt.Println("repo: ", collectNewEvents(repo))
 	}
 
 	if allocationErr != nil {
@@ -118,16 +116,16 @@ func ChangeBatchQuantity(ctx context.Context, event events.Event, repo *adapters
 	default:
 		return nil, fmt.Errorf("wrong event type %v", event.Name())
 	}
-	fmt.Println("batch ref: ", batchQuantityChanged.Ref())
+
 	productEnt := repo.GetByBatchRef(ctx, batchQuantityChanged.Ref())
-	fmt.Println("product entity is null: ", productEnt == nil)
+
 	product := mapper.ProductToDomain(productEnt)
 	product.ChangeBatchQuantity(batchQuantityChanged.Ref(), batchQuantityChanged.Qty())
-	fmt.Println("product dom available: ", product.Batches[0].AvailableQuantity())
+
 	toEntity := mapper.ProductToEntity(product)
-	fmt.Println("product entity available: ", mapper.ProductToDomain(toEntity).Batches[0].AvailableQuantity())
+
 	err := repo.Update(ctx, toEntity)
-	fmt.Println("XXXX: ", repo.Get(ctx, productEnt.SKU).Batches[0].PurchasedQuantity)
+
 	if err != nil {
 		return nil, err
 	}
