@@ -1,4 +1,4 @@
-package events
+package domain_events
 
 import (
 	"fmt"
@@ -28,7 +28,7 @@ func (e *AllocationRequired) OrderId() string {
 	return e.orderId
 }
 
-func (e *AllocationRequired) ID() string {
+func (e *AllocationRequired) TransactionID() string {
 	return e.sku
 }
 

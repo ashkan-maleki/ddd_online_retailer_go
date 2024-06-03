@@ -69,7 +69,7 @@ func InsertOrderLine(db *gorm.DB) int64 {
 	//
 	//var got entity.OrderLine
 	//db.Raw("SELECT id FROM order_lines WHERE order_id = ? and sku = ?", "order3", "GENERIC-SOFA").Scan(&got)
-	//return got.ID
+	//return got.TransactionID
 }
 
 func InsertBatch(db *gorm.DB, reference string) int64 {
@@ -89,7 +89,7 @@ func InsertBatch(db *gorm.DB, reference string) int64 {
 	//
 	//var got entity.Batch
 	//db.Raw("SELECT id FROM batches WHERE reference = ? and sku = ?", reference, "GENERIC-SOFA").Scan(&got)
-	//return got.ID
+	//return got.TransactionID
 }
 
 func InsertAllocation(db *gorm.DB, lineID int64, batchID int64) {

@@ -1,4 +1,4 @@
-package events
+package domain_events
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ func (b *BatchQuantityChanged) Ref() string {
 	return b.ref
 }
 
-func (b *BatchQuantityChanged) ID() string {
+func (b *BatchQuantityChanged) TransactionID() string {
 	return b.ref
 }
 

@@ -3,7 +3,7 @@ package mapper
 //func TestCanConvertDbBatchToDomainBatch(t *testing.T) {
 //	now := time.Now()
 //	db := Batches{
-//		ID:        1,
+//		TransactionID:        1,
 //		Sku:       "my-sku",
 //		Reference: "my-ref",
 //		Eta:       now,

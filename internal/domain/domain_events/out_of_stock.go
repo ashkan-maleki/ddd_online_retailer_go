@@ -1,4 +1,4 @@
-package events
+package domain_events
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ func NewOutOfStockEvent(sku string) *OutOfStock {
 
 var _ Event = (*OutOfStock)(nil)
 
-func (o OutOfStock) ID() string {
+func (o OutOfStock) TransactionID() string {
 	return o.sku
 }
 

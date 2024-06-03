@@ -1,4 +1,4 @@
-package events
+package domain_events
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ func NewBatchCreated(sku string, ref string, qty int, eta time.Time) *BatchCreat
 
 var _ Event = (*BatchCreated)(nil)
 
-func (e *BatchCreated) ID() string {
+func (e *BatchCreated) TransactionID() string {
 	return e.Sku
 }
 

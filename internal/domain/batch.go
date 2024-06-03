@@ -88,6 +88,8 @@ func (b *Batch) DeallocateOne() *OrderLine {
 	}
 }
 
+// Allocate TODO: remove this function
+// Allocate deprecate
 func Allocate(line OrderLine, batches []*Batch) (*Batch, error) {
 	sort.Slice(batches, func(i, j int) bool {
 		return batches[i].ETA.Before(batches[j].ETA)

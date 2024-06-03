@@ -1,4 +1,4 @@
-package events
+package domain_events
 
 const (
 	OutOfStockEvent           = "OutOfStock"
@@ -8,6 +8,6 @@ const (
 )
 
 type Event interface {
-	ID() string
+	TransactionID() string
 	Name() string
 }
