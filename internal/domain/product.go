@@ -5,24 +5,44 @@ import (
 	"sort"
 )
 
-type BaseEntity struct {
-	events []domain_events.Event
+type Entity interface {
+	DomainEvents() []domain_events.Event
+	AddDomainEvent(domain_events.Event)
+	HasDomainEvent() bool
 }
+
+type BaseEntity struct {
+	domainEvents []domain_events.Event
+}
+
+var _ Entity = (*BaseEntity)(nil)
 
 func NewBaseEntity() *BaseEntity {
-	return &BaseEntity{events: make([]domain_events.Event, 0)}
+	return &BaseEntity{domainEvents: make([]domain_events.Event, 0)}
 }
 
-func (p *BaseEntity) Events() []domain_events.Event {
-	return p.events
+func (p *BaseEntity) DomainEvents() []domain_events.Event {
+	return p.domainEvents
 }
 
-func (p *BaseEntity) AddEvent(event domain_events.Event) {
-	p.events = append(p.events, event)
+func (p *BaseEntity) AddDomainEvent(event domain_events.Event) {
+	p.domainEvents = append(p.domainEvents, event)
 }
 
-func (p *BaseEntity) HasEvent() bool {
-	return len(p.events) > 0
+func (p *BaseEntity) HasDomainEvent() bool {
+	return len(p.domainEvents) > 0
+}
+
+func (p *BaseEntity) PopEvent() domain_events.Event {
+	if len(p.domainEvents) > 1 {
+		p.domainEvents = p.domainEvents[1:]
+		return p.domainEvents[0]
+	} else if len(p.domainEvents) == 1 {
+		p.domainEvents = make([]domain_events.Event, 0)
+		return p.domainEvents[0]
+	} else {
+		return nil
+	}
 }
 
 type Product struct {
@@ -32,23 +52,11 @@ type Product struct {
 	Batches       []*Batch
 }
 
-func (p *Product) PopEvent() domain_events.Event {
-	if len(p.events) > 1 {
-		p.events = p.events[1:]
-		return p.events[0]
-	} else if len(p.events) == 1 {
-		p.events = make([]domain_events.Event, 0)
-		return p.events[0]
-	} else {
-		return nil
-	}
-}
-
 func (p *Product) HasOutOfStockEventAsLast() bool {
-	if len(p.events) == 0 {
+	if len(p.domainEvents) == 0 {
 		return false
 	}
-	last := p.events[len(p.events)-1]
+	last := p.domainEvents[len(p.domainEvents)-1]
 	ev := last.(*domain_events.OutOfStock)
 	return ev.Sku() == p.SKU
 }
@@ -69,7 +77,7 @@ func (p *Product) Allocate(line OrderLine) (*Batch, error) {
 		}
 	}
 
-	p.events = append(p.events, domain_events.NewOutOfStockEvent(line.SKU))
+	p.AddDomainEvent(domain_events.NewOutOfStockEvent(line.SKU))
 	return nil, OutOfStockErr
 }
 
@@ -84,6 +92,6 @@ func (p *Product) ChangeBatchQuantity(ref string, qty int) {
 
 	for batch.AvailableQuantity() < 0 {
 		line := batch.DeallocateOne()
-		p.events = append(p.events, domain_events.NewAllocationRequired(line.OrderID, line.SKU, line.Qty))
+		p.AddDomainEvent(domain_events.NewAllocationRequired(line.OrderID, line.SKU, line.Qty))
 	}
 }
