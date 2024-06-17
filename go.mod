@@ -1,10 +1,10 @@
 module github.com/ashkan-maleki/ddd_online_retailer_go
 
-go 1.20
+go 1.22
 
 require (
+	entgo.io/ent v0.13.1
 	github.com/gofiber/fiber/v2 v2.52.2
-	github.com/rs/xid v1.5.0
 	github.com/stretchr/testify v1.8.4
 	gorm.io/driver/sqlite v1.5.5
 	gorm.io/gorm v1.25.7
@@ -26,6 +26,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
