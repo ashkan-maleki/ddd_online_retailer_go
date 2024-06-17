@@ -1,8 +1,7 @@
-package domain
+package model
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 	"time"
 )
@@ -30,9 +29,9 @@ func NewBatch(reference string, sku string, qty int, eta time.Time) *Batch {
 
 func (b *Batch) Allocate(line OrderLine) {
 	if b.CanAllocate(line) {
-		fmt.Printf("Dom 1 --> OrderID: %v, allocation size: %v\n", line.OrderID, len(b.allocations))
+
 		b.allocations = append(b.allocations, line)
-		fmt.Printf("Dom 2 --> OrderID: %v, allocation size: %v\n", line.OrderID, len(b.allocations))
+
 	}
 }
 

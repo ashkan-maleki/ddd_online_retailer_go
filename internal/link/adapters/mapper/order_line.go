@@ -1,12 +1,12 @@
 package mapper
 
 import (
-	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/model"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/persistence/entity"
 )
 
-func OrderLineToDomain(line entity.OrderLine) domain.OrderLine {
-	return domain.OrderLine{
+func OrderLineToDomain(line entity.OrderLine) model.OrderLine {
+	return model.OrderLine{
 		ID:      line.ID,
 		OrderID: line.OrderID,
 		SKU:     line.SKU,
@@ -14,7 +14,7 @@ func OrderLineToDomain(line entity.OrderLine) domain.OrderLine {
 	}
 }
 
-func OrderLineToEntity(line domain.OrderLine) entity.OrderLine {
+func OrderLineToEntity(line model.OrderLine) entity.OrderLine {
 	return entity.OrderLine{
 		ID:      line.ID,
 		OrderID: line.OrderID,
@@ -23,15 +23,15 @@ func OrderLineToEntity(line domain.OrderLine) entity.OrderLine {
 	}
 }
 
-func OrderLineToDomainMany(lines []entity.OrderLine) []domain.OrderLine {
-	domainLines := make([]domain.OrderLine, len(lines), len(lines))
+func OrderLineToDomainMany(lines []entity.OrderLine) []model.OrderLine {
+	domainLines := make([]model.OrderLine, len(lines), len(lines))
 	for i, line := range lines {
 		domainLines[i] = OrderLineToDomain(line)
 	}
 	return domainLines
 }
 
-func OrderLineToEntityMany(lines []domain.OrderLine) []entity.OrderLine {
+func OrderLineToEntityMany(lines []model.OrderLine) []entity.OrderLine {
 	domainLines := make([]entity.OrderLine, len(lines), len(lines))
 	for i, line := range lines {
 		domainLines[i] = OrderLineToEntity(line)

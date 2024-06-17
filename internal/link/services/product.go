@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/model"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/link/adapters"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/link/adapters/mapper"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/persistence/entity"
@@ -31,7 +31,7 @@ func IsValidSku(sku string, batches []*entity.Batch) bool {
 }
 
 func (service *ProductService) AddBatch(ctx context.Context, reference, sku string, qty int, eta time.Time) error {
-	batch := &domain.Batch{
+	batch := &model.Batch{
 		Reference:         reference,
 		SKU:               sku,
 		PurchasedQuantity: qty,
@@ -40,7 +40,7 @@ func (service *ProductService) AddBatch(ctx context.Context, reference, sku stri
 
 	product := mapper.ProductToDomain(service.repo.Get(ctx, sku))
 	if product == nil {
-		product = domain.NewProduct(sku, make([]*domain.Batch, 0))
+		product = model.NewProduct(sku, make([]*model.Batch, 0))
 	}
 	product.Batches = append(product.Batches, batch)
 	productEntity := mapper.ProductToEntity(product)
@@ -48,7 +48,7 @@ func (service *ProductService) AddBatch(ctx context.Context, reference, sku stri
 }
 
 func (service *ProductService) Allocate(ctx context.Context, orderID, sku string, qty int) (string, error) {
-	line := domain.NewOrderLine(orderID, sku, qty)
+	line := model.NewOrderLine(orderID, sku, qty)
 
 	product := mapper.ProductToDomain(service.repo.Get(ctx, sku))
 	if product == nil {

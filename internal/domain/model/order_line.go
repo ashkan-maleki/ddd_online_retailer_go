@@ -1,4 +1,4 @@
-package domain
+package model
 
 type OrderLine struct {
 	ID      int64

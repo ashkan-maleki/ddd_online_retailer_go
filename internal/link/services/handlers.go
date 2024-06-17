@@ -4,18 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain"
-	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/events"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/commands"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/domain"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/domain_events"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/model"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/link/adapters"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/link/adapters/mapper"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/persistence/entity"
 )
 
-func SendOutOfStockNotification(_ context.Context, event events.Event, _ *adapters.ProductRepo) (any, error) {
+func SendOutOfStockNotification(_ context.Context, event domain.Event, _ *adapters.ProductRepo) (any, error) {
 
-	var outOfStock *events.OutOfStock
+	var outOfStock *domain_events.OutOfStock
 	switch a := event.(type) {
-	case *events.OutOfStock:
+	case *domain_events.OutOfStock:
 		outOfStock = a
 		break
 
@@ -29,10 +31,10 @@ func SendOutOfStockNotification(_ context.Context, event events.Event, _ *adapte
 	return emailMessage, nil
 }
 
-func AddBatch(ctx context.Context, event events.Event, repo *adapters.ProductRepo) (any, error) {
-	var batchCreated *events.BatchCreated
+func AddBatch(ctx context.Context, event domain.Event, repo *adapters.ProductRepo) (any, error) {
+	var batchCreated *commands.CreateBatch
 	switch a := event.(type) {
-	case *events.BatchCreated:
+	case *commands.CreateBatch:
 		batchCreated = a
 		break
 
@@ -68,10 +70,10 @@ func AddBatch(ctx context.Context, event events.Event, repo *adapters.ProductRep
 	return nil, nil
 }
 
-func Allocate(ctx context.Context, event events.Event, repo *adapters.ProductRepo) (any, error) {
-	var allocationRequired *events.AllocationRequired
+func Allocate(ctx context.Context, event domain.Event, repo *adapters.ProductRepo) (any, error) {
+	var allocationRequired *domain_events.Allocated
 	switch a := event.(type) {
-	case *events.AllocationRequired:
+	case *domain_events.Allocated:
 		allocationRequired = a
 		break
 	default:
@@ -79,7 +81,7 @@ func Allocate(ctx context.Context, event events.Event, repo *adapters.ProductRep
 	}
 
 	sku := allocationRequired.Sku()
-	line := domain.NewOrderLine(allocationRequired.OrderId(), sku, allocationRequired.Qty())
+	line := model.NewOrderLine(allocationRequired.OrderId(), sku, allocationRequired.Qty())
 
 	get := repo.Get(ctx, sku)
 	gotBatch := get.Batches[0]
@@ -92,7 +94,7 @@ func Allocate(ctx context.Context, event events.Event, repo *adapters.ProductRep
 	batch, allocationErr := product.Allocate(line)
 	fmt.Printf("OrderID: %v, Product with ref %v has %d available\n", line.OrderID, batch.Reference, batch.AvailableQuantity())
 
-	if allocationErr == nil || errors.Is(allocationErr, domain.OutOfStockErr) {
+	if allocationErr == nil || errors.Is(allocationErr, model.OutOfStockErr) {
 		productEntity := mapper.ProductToEntity(product)
 		err := repo.Update(ctx, productEntity)
 		if err != nil {
@@ -106,10 +108,10 @@ func Allocate(ctx context.Context, event events.Event, repo *adapters.ProductRep
 	return batch.Reference, nil
 }
 
-func ChangeBatchQuantity(ctx context.Context, event events.Event, repo *adapters.ProductRepo) (any, error) {
-	var batchQuantityChanged *events.BatchQuantityChanged
+func ChangeBatchQuantity(ctx context.Context, event domain.Event, repo *adapters.ProductRepo) (any, error) {
+	var batchQuantityChanged *commands.ChangeBatchQuantity
 	switch a := event.(type) {
-	case *events.BatchQuantityChanged:
+	case *commands.ChangeBatchQuantity:
 		batchQuantityChanged = a
 		break
 

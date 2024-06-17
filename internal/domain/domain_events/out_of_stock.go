@@ -2,6 +2,7 @@ package domain_events
 
 import (
 	"fmt"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/domain"
 	"reflect"
 )
 
@@ -16,7 +17,7 @@ func NewOutOfStockEvent(sku string) *OutOfStock {
 
 }
 
-var _ Event = (*OutOfStock)(nil)
+var _ domain.Event = (*OutOfStock)(nil)
 
 func (o OutOfStock) TransactionID() string {
 	return o.sku

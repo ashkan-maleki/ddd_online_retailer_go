@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/events"
+	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/domain"
 	"time"
 )
 
@@ -24,9 +24,9 @@ type Batch struct {
 }
 
 type Allocation struct {
-	//ID          int64 `gorm:"primaryKey"`
+	//TransactionID          int64 `gorm:"primaryKey"`
 	OrderLineID int64     `gorm:"primaryKey;autoIncrement:false"`
-	OrderLine   OrderLine `gorm:"foreignKey:ID;references:OrderLineID"`
+	OrderLine   OrderLine `gorm:"foreignKey:TransactionID;references:OrderLineID"`
 	BatchID     int64     `gorm:"primaryKey;autoIncrement:false"`
 }
 
@@ -34,25 +34,25 @@ type Product struct {
 	SKU           string  `gorm:"primaryKey"`
 	VersionNumber int     `gorm:"default:0"`
 	Batches       []Batch `gorm:"foreignKey:SKU;references:SKU"`
-	events        []events.Event
+	events        []domain.Event
 }
 
-func (p *Product) Events() []events.Event {
+func (p *Product) Events() []domain.Event {
 	return p.events
 }
 
-func (p *Product) AddEvent(event events.Event) {
+func (p *Product) AddEvent(event domain.Event) {
 	p.events = append(p.events, event)
 }
 
-func (p *Product) PopEvent() events.Event {
+func (p *Product) PopEvent() domain.Event {
 	if len(p.events) > 1 {
 		event := p.events[0]
 		p.events = p.events[1:]
 		return event
 	} else if len(p.events) == 1 {
 		event := p.events[0]
-		p.events = make([]events.Event, 0)
+		p.events = make([]domain.Event, 0)
 		return event
 	} else {
 		return nil
