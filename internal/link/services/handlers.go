@@ -15,6 +15,18 @@ import (
 
 func SendOutOfStockNotification(_ context.Context, event domain.Event, _ *adapters.ProductRepo) (any, error) {
 
+	outOfStock, err := ConvertOutOfStock(event)
+	if err != nil {
+		return nil, err
+	}
+
+	emailMessage := fmt.Sprintf("out of stock for %v", outOfStock.SKU())
+	SendEmail("stock@eshop.com", emailMessage)
+	fmt.Println("email is  sent")
+	return emailMessage, nil
+}
+
+func ConvertOutOfStock(event domain.Event) (*domain_events.OutOfStock, error) {
 	var outOfStock *domain_events.OutOfStock
 	switch a := event.(type) {
 	case *domain_events.OutOfStock:
@@ -24,11 +36,7 @@ func SendOutOfStockNotification(_ context.Context, event domain.Event, _ *adapte
 	default:
 		return nil, fmt.Errorf("wrong event type %v", event.Name())
 	}
-
-	emailMessage := fmt.Sprintf("out of stock for %v", outOfStock.Sku())
-	SendEmail("stock@eshop.com", emailMessage)
-	fmt.Println("email is  sent")
-	return emailMessage, nil
+	return outOfStock, nil
 }
 
 func AddBatch(ctx context.Context, event domain.Event, repo *adapters.ProductRepo) (any, error) {
@@ -71,17 +79,13 @@ func AddBatch(ctx context.Context, event domain.Event, repo *adapters.ProductRep
 }
 
 func Allocate(ctx context.Context, event domain.Event, repo *adapters.ProductRepo) (any, error) {
-	var allocationRequired *domain_events.Allocated
-	switch a := event.(type) {
-	case *domain_events.Allocated:
-		allocationRequired = a
-		break
-	default:
-		return nil, fmt.Errorf("wrong event type %v", event.Name())
+	allocationRequired, err := domain_events.ConvertAllocate(event)
+	if err != nil {
+		return nil, err
 	}
 
-	sku := allocationRequired.Sku()
-	line := model.NewOrderLine(allocationRequired.OrderId(), sku, allocationRequired.Qty())
+	sku := allocationRequired.SKU()
+	line := model.NewOrderLine(allocationRequired.OrderID(), sku, allocationRequired.Qty())
 
 	get := repo.Get(ctx, sku)
 	gotBatch := get.Batches[0]
@@ -91,7 +95,7 @@ func Allocate(ctx context.Context, event domain.Event, repo *adapters.ProductRep
 	if product == nil {
 		return "", fmt.Errorf("sku validation: %w", InvalidSku)
 	}
-	batch, allocationErr := product.Allocate(line)
+	batch, allocationErr := product.AllocateDeprecated(line)
 	fmt.Printf("OrderID: %v, Product with ref %v has %d available\n", line.OrderID, batch.Reference, batch.AvailableQuantity())
 
 	if allocationErr == nil || errors.Is(allocationErr, model.OutOfStockErr) {

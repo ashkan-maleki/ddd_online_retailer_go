@@ -23,7 +23,7 @@ func (o OutOfStock) TransactionID() string {
 	return o.sku
 }
 
-func (o OutOfStock) Sku() string {
+func (o OutOfStock) SKU() string {
 	return o.sku
 }
 
@@ -34,4 +34,8 @@ func (o OutOfStock) Name() string {
 		panic(fmt.Sprintf("event name collision, %v != %v", eventName, OutOfStockEvent))
 	}
 	return eventName
+}
+
+func ConvertOutOfStock(event domain.Event) (*OutOfStock, error) {
+	return domain.Convert[*OutOfStock](event)
 }

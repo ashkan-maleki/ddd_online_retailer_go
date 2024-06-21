@@ -1,7 +1,7 @@
 package commands
 
 const (
-	AllocateCommand            = "Allocate"
+	AllocateCommand            = "AllocateDeprecated"
 	CreateBatchCommand         = "CreateBatch"
 	ChangeBatchQuantityCommand = "ChangeBatchQuantity"
 )

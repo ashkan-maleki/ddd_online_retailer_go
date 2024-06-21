@@ -36,7 +36,7 @@ package services
 //	ref := "b1"
 //	service := NewBatchService(repo)
 //	service.AddBatch(ctx, ref, "COMPLICATED-LAMP", 100, time.Time{})
-//	got, err := service.Allocate(ctx, ref, "COMPLICATED-LAMP", 10)
+//	got, err := service.AllocateDeprecated(ctx, ref, "COMPLICATED-LAMP", 10)
 //	if err != nil {
 //		panic(err)
 //	}
@@ -49,7 +49,7 @@ package services
 //	ref := "b1"
 //	service := NewBatchService(repo)
 //	service.AddBatch(ctx, ref, "AREALSKU", 100, time.Time{})
-//	_, err := service.Allocate(ctx, ref, "NONEXISTENTSKU", 10)
+//	_, err := service.AllocateDeprecated(ctx, ref, "NONEXISTENTSKU", 10)
 //	if err != nil {
 //		assert.ErrorIs(t, err, InvalidSku)
 //	}

@@ -16,14 +16,30 @@ type Product struct {
 func (p *Product) HasOutOfStockEventAsLast() bool {
 	last := p.LastEvent()
 	ev := last.(*domain_events.OutOfStock)
-	return ev.Sku() == p.SKU
+	return ev.SKU() == p.SKU
 }
 
 func NewProduct(SKU string, batches []*Batch) *Product {
 	return &Product{SKU: SKU, Batches: batches, VersionNumber: 0, BaseEntity: domain.NewBaseEntity()}
 }
 
-func (p *Product) Allocate(line OrderLine) (*Batch, error) {
+func (p *Product) Allocate(line OrderLine) {
+	sort.Slice(p.Batches, func(i, j int) bool {
+		return p.Batches[i].ETA.Before(p.Batches[j].ETA)
+	})
+	for _, batch := range p.Batches {
+		if batch.CanAllocate(line) {
+			batch.Allocate(line)
+			p.VersionNumber += 1
+			p.AddDomainEvent(domain_events.NewAllocated(line.OrderID, line.SKU, batch.Reference, line.Qty))
+			return
+		}
+	}
+
+	p.AddDomainEvent(domain_events.NewOutOfStockEvent(line.SKU))
+}
+
+func (p *Product) AllocateDeprecated(line OrderLine) (*Batch, error) {
 	sort.Slice(p.Batches, func(i, j int) bool {
 		return p.Batches[i].ETA.Before(p.Batches[j].ETA)
 	})

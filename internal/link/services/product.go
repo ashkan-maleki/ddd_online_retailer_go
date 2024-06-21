@@ -7,7 +7,6 @@ import (
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/domain/model"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/link/adapters"
 	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/link/adapters/mapper"
-	"github.com/ashkan-maleki/ddd_online_retailer_go/internal/persistence/entity"
 	"time"
 )
 
@@ -21,14 +20,14 @@ func NewBatchService(repo *adapters.ProductRepo) *ProductService {
 
 var InvalidSku = errors.New("invalid sku")
 
-func IsValidSku(sku string, batches []*entity.Batch) bool {
-	for _, batch := range batches {
-		if sku == batch.SKU {
-			return true
-		}
-	}
-	return false
-}
+//func IsValidSku(sku string, batches []*entity.Batch) bool {
+//	for _, batch := range batches {
+//		if sku == batch.SKU {
+//			return true
+//		}
+//	}
+//	return false
+//}
 
 func (service *ProductService) AddBatch(ctx context.Context, reference, sku string, qty int, eta time.Time) error {
 	batch := &model.Batch{
@@ -55,7 +54,7 @@ func (service *ProductService) Allocate(ctx context.Context, orderID, sku string
 		return "", fmt.Errorf("sku validation: %w", InvalidSku)
 	}
 
-	batch, err := product.Allocate(line)
+	batch, err := product.AllocateDeprecated(line)
 	if err != nil {
 		return "", err
 	}

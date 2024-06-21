@@ -4,6 +4,7 @@ type Entity interface {
 	DomainEvents() []Event
 	AddDomainEvent(Event)
 	HasDomainEvent() bool
+	DomainEventsLength() int
 }
 
 type BaseEntity struct {
@@ -26,6 +27,10 @@ func (p *BaseEntity) AddDomainEvent(event Event) {
 
 func (p *BaseEntity) HasDomainEvent() bool {
 	return len(p.domainEvents) > 0
+}
+
+func (p *BaseEntity) DomainEventsLength() int {
+	return len(p.domainEvents)
 }
 
 func (p *BaseEntity) LastEvent() Event {
