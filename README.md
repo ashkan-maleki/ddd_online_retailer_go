@@ -24,6 +24,11 @@ Logging
 11) https://dwarvesf.hashnode.dev/go-1-21-release-slog-with-benchmarks-zerolog-and-zap
 12) https://github.com/phuslu/log
 
+Loki
+
+1) https://www.youtube.com/watch?v=x2usZVRnXK4
+2) https://www.youtube.com/watch?v=xtEppndO7F8
+
 Open Telemetry
 
 1) https://opentelemetry.io/docs/languages/go/
@@ -33,6 +38,7 @@ Open Telemetry
 5) https://github.com/open-telemetry/opentelemetry-go
 6) https://opentelemetry.io/docs/languages/go/exporters/
 7) https://github.com/open-telemetry/opentelemetry-go/tree/main/example
+8) https://www.youtube.com/watch?v=ZIN7H00ulQw
 
 Prometheus
 
@@ -46,6 +52,9 @@ Prometheus
 8) https://github.com/mx-ulises/puar-golang/blob/main/ch2/docker-compose.yaml
 9) https://github.com/vegasbrianc/prometheus/blob/master/docker-compose.yml
 10) https://github.com/deanwilson/docker-compose-prometheus
+11) https://www.youtube.com/watch?v=WUBjlJzI2a0
+12) https://www.youtube.com/watch?v=LKBl6lN6ENk
+13) https://www.youtube.com/watch?v=h4Sl21AKiDg
 
 Sentry
 
