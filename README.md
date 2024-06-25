@@ -41,6 +41,11 @@ Prometheus
 3) https://prometheus.io/docs/tutorials/instrumenting_http_server_in_go/
 4) https://github.com/open-telemetry/opentelemetry-go/blob/main/example/prometheus/main.go
 5) https://dev.to/eminetto/using-prometheus-to-collect-metrics-from-golang-applications-35gc
+6) https://www.oreilly.com/library/view/prometheus-up/9781098131135/
+7) https://mxulises.medium.com/simple-prometheus-setup-on-docker-compose-f702d5f98579
+8) https://github.com/mx-ulises/puar-golang/blob/main/ch2/docker-compose.yaml
+9) https://github.com/vegasbrianc/prometheus/blob/master/docker-compose.yml
+10) https://github.com/deanwilson/docker-compose-prometheus
 
 Sentry
 
