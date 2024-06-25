@@ -63,3 +63,6 @@ Monitoring
 
 Web (Fiber)
 1) https://docs.gofiber.io/contrib/fibersentry/
+
+JWT & Authorization
+1) https://jerrynsh.com/all-to-know-about-auth-and-cookies/
